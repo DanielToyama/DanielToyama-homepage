@@ -116,17 +116,17 @@ const config = {
             title: '还有什么东西呢（？',
             items: [
               {
-                label: '博客',
+                label: '兔兔的博客',
                 to: '/blog',
               },
               {
-                label: 'GitHub',
+                label: '兔兔的GitHub主页',
                 href: 'https://github.com/DanielToyama',
               },
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} 兔兔的个人小家. Built with Docusaurus.`,
+        copyright: `Copyright © ${new Date().getFullYear()} 兔兔的个人小家. Built with Docusaurus.<br /><a href="https://icp.gov.moe/?keyword=20240512" target="_blank">萌ICP备20240512号</a>`,
       },
       prism: {
         theme: prismThemes.github,
