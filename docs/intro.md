@@ -8,7 +8,7 @@ sidebar_position: 1
 
 ## 音游人
 
-Phigros15.3/Orzmic12.49/Malody4Dan/Rotaeno14.7
+Phigros15.3/Orzmic12.49/Malody5Dan/Rotaeno14.7
 
 其实是基本上什么音游都玩，板子上面满满一页都是音游。曾经被朋友安利了音游，然后因为享受节奏的感觉成为了高浓度的音游人。
 
