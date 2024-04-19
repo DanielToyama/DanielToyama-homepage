@@ -109,6 +109,14 @@ const config = {
               {
                 label: '兔兔的哔哩哔哩主页',
                 href: 'https://b23.tv/U09RKL6',
+              },
+              {
+                label: 'KasumiBot(By 户山兔兔）',
+                href: 'https://ksmbot.top',
+              },
+              {
+                label: 'YukieBot(By 户山兔兔）',
+                href: 'https://Yukiebot.top',
               }
             ],
           },

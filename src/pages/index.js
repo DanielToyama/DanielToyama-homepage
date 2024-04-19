@@ -26,6 +26,11 @@ export default function () {
                                 to="./blog">
                                 敲门
                             </Link>
+                            <Link
+                                className="button button--secondary button--lg"
+                                to="./intro">
+                                看看兔兔
+                            </Link>
                         </div>
 
                     </div>

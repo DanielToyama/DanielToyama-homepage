@@ -28,7 +28,7 @@ Phigros15.3/Orzmic12.49/Malody5Dan/Rotaeno14.7
 
 高中时候为了能和群友们开好mcbe服务器学会了nodejs的基本编写，能够写简单的JavaScript代码，也以此为机缘了解了QQ机器人的开发。
 
-经手了mc基岩机器人框架[Sparkbridge](http://sparkbridge.cn)的开发,曾经为热爱的Bangdream开发过[Ksmbot机器人](http://ksmbot.github.io)(可惜被tx制裁后放弃了)
+经手了mc基岩机器人框架[Sparkbridge](http://sparkbridge.cn)的开发,也为热爱的Bangdream开发过[Ksmbot机器人](http://ksmbot.top)（仍在维护）
 
 目前主持[Yukie雪绘Bot-Orzmic查分机器人](http://yukiebot.top)的主要开发，开发过程中受益匪浅，学到不少东西。（~~我也是对音游圈有点影响的人了吧~~）
 
