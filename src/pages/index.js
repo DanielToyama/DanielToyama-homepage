@@ -28,7 +28,7 @@ export default function () {
                             </Link>
                             <Link
                                 className="button button--secondary button--lg"
-                                to="./intro">
+                                to="./docs/intro">
                                 看看兔兔
                             </Link>
                         </div>
