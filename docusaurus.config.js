@@ -108,7 +108,7 @@ const config = {
             items: [
               {
                 label: '兔兔的哔哩哔哩主页',
-                href: 'https://b23.tv/U09RKL6',
+                href: 'https://space.bilibili.com/1333478733',
               },
               {
                 label: 'KasumiBot(By 户山兔兔）',
