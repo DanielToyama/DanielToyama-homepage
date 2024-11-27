@@ -13,10 +13,11 @@ Phigros15.3/Orzmic12.49/Malody5Dan/Rotaeno14.7
 其实是基本上什么音游都玩，板子上面满满一页都是音游。曾经被朋友安利了音游，然后因为享受节奏的感觉成为了高浓度的音游人。
 
 
-<img src="../docs/pgr.jpeg" alt="Image Alt Text" width="420" height="800" />
+<img src="../docs/phi.jpg" alt="Image Alt Text" width="420" height="800" />
 
 
-<img src="../docs/orz.jpeg" alt="Image Alt Text" width="500" height="800" />
+<img src="../docs/orz.jpg" alt="Image Alt Text" width="500" height="800" />
+<img src="../docs/mai.jpg" alt="Image Alt Text" width="1200" height="400" />
 <img src="../docs/pjsk.jpg" alt="Image Alt Text" width="650" height="470" />
 <img src="../docs/pad.jpg" alt="Image Alt Text" width="500" height="400" />
 
@@ -26,7 +27,7 @@ Phigros15.3/Orzmic12.49/Malody5Dan/Rotaeno14.7
 
 小时候就痴迷于电脑和各种电子设备。
 
-高中时候为了能和群友们开好mcbe服务器学会了nodejs的基本编写，能够写简单的JavaScript代码，也以此为机缘了解了QQ机器人的开发。
+高中时候为了能和群友们开好我的世界基岩版服务器学会了nodejs的基本编写，能够写简单的JavaScript代码，也以此为机缘了解了QQ机器人的开发。
 
 经手了mc基岩机器人框架[Sparkbridge](http://sparkbridge.cn)的开发,也为热爱的Bangdream开发过[Ksmbot机器人](http://ksmbot.top)（仍在维护）
 
