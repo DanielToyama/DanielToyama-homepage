@@ -12,7 +12,11 @@ export default function () {
         'https://patchwiki.biligame.com/images/ba/3/30/k2pgz6uy5ypousdel9f0ggz7s24wa94.png',
         'https://cdnimg.gamekee.com/wiki2.0/images/w_3475/h_2583/829/43637/2022/7/25/428958.png',
         'https://cdnimg.gamekee.com/wiki2.0/images/w_3464/h_2569/829/43637/2023/3/26/845977.png',
-        'https://webcnstatic.yostar.net/ba_cn_web/prod/upload/wallpaper/X0_6rTZl.jpeg'
+        'https://webcnstatic.yostar.net/ba_cn_web/prod/upload/wallpaper/X0_6rTZl.jpeg',
+        "https://prod-alicdn-community.kurobbs.com/forum/9698f7c745434923b62da339667f372520240517.png",
+        "https://prod-alicdn-community.kurobbs.com/forum/fac40f7875194fe4a4422a2a0ded679920240627.jpg",
+        "https://prod-alicdn-community.kurobbs.com/forum/543694508f66411997515c66e56e91f720240627.jpg",
+        "https://prod-alicdn-community.kurobbs.com/forum/896b5a07b9684aa486079409e4e4b11720241114.png"
     ];
 
     // State to store the selected background image URL
