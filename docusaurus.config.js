@@ -151,7 +151,7 @@ const config = {
             async: true,
             'data-cf-beacon': `{"token": "${cloudflareToken}"}`,
           },
-        ]
+        ] 
       : []),
   ],
 };
