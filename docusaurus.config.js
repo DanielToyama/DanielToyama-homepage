@@ -3,7 +3,8 @@
 // (when paired with `@ts-check`).
 // There are various equivalent ways to declare your Docusaurus config.
 // See: https://docusaurus.io/docs/api/docusaurus-config
-
+const isProd = process.env.NODE_ENV === 'production';
+const cloudflareToken = process.env.CLOUDFLARE_TOKEN;
 import {themes as prismThemes} from 'prism-react-renderer';
 
 /** @type {import('@docusaurus/types').Config} */
@@ -143,11 +144,15 @@ const config = {
     }),
   // Add the Cloudflare Web Analytics script
   scripts: [
-    {
-      src: 'https://static.cloudflareinsights.com/beacon.min.js',
-      async: true,
-      'data-cf-beacon': '{"token": "13480125097f45c28e430dbbf132f100"}',
-    },
+    ...(isProd && cloudflareToken
+      ? [
+          {
+            src: 'https://static.cloudflareinsights.com/beacon.min.js',
+            async: true,
+            'data-cf-beacon': `{"token": "${cloudflareToken}"}`,
+          },
+        ]
+      : []),
   ],
 };
 
