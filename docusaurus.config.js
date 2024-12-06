@@ -144,6 +144,14 @@ const config = {
     }),
   // Add the Cloudflare Web Analytics script
   scripts: [
+    {
+      src: 'https://hm.baidu.com/hm.js?97d50cf41f61a149f929270878f687aa',
+      async: true,
+    },
+    {
+      src: '/baidu—analytics.js', // 添加自定义逻辑
+      async: true,
+    },
     ...(isProd && cloudflareToken
       ? [
           {
