@@ -85,7 +85,11 @@ export default function HomePage() {
 
     return (
         <Layout description="户山兔兔のBlog站，兔兔的小站，户山兔兔，兔兔，DanielToyama">
+            <head>
+                <meta name="baidu-site-verification" content="codeva-diMaIqZTcx" />
+            </head>
             <div id="index-page-container">
+
                 {/* 背景图片 */}
                 <div id="index-page-bg" style={{ backgroundImage: `url(${backgroundImage})` }}></div>
                 <div id="index-page-bg-mask"></div>
