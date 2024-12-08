@@ -17,7 +17,7 @@ Phigros15.3/Orzmic12.49/Malody5Dan/Rotaeno14.7
 
 
 <img src="../docs/orz.jpg" alt="Image Alt Text" width="500" height="800" />
-<img src="../docs/mai.jpg" alt="Image Alt Text" width="1200" height="400" />
+<img src="../docs/mai.jpg" alt="Image Alt Text" width="1200" height="600" />
 <img src="../docs/pjsk.jpg" alt="Image Alt Text" width="650" height="470" />
 <img src="../docs/pad.jpg" alt="Image Alt Text" width="500" height="400" />
 

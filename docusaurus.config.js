@@ -102,14 +102,18 @@ const config = {
                 label: '兔兔的QQ',
                 to: 'https://qm.qq.com/cgi-bin/qm/qr?k=cUojLoZsBE0HvCHgOjuZOGNiJkZ06-z0&noverify=0&personal_qrcode_source=3',
               },
+               {
+                label: '兔兔的哔哩哔哩主页',
+                href: 'https://space.bilibili.com/1333478733',
+              },
             ],
           },
           {
             title: '友情链接',
             items: [
               {
-                label: '兔兔的哔哩哔哩主页',
-                href: 'https://space.bilibili.com/1333478733',
+                label: '乾狐之家，狐狸的小站',
+                href: 'https://qhlg.flime.top/',
               },
               {
                 label: 'KasumiBot(By 户山兔兔）',
