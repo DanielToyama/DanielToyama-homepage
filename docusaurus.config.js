@@ -5,7 +5,7 @@
 // See: https://docusaurus.io/docs/api/docusaurus-config
 const isProd = process.env.NODE_ENV === 'production';
 const cloudflareToken = process.env.CLOUDFLARE_TOKEN;
-import {themes as prismThemes} from 'prism-react-renderer';
+import { themes as prismThemes } from 'prism-react-renderer';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
@@ -52,7 +52,7 @@ const config = {
           blogSidebarTitle: '最近有什么呢',
           blogSidebarCount: 10,
           showReadingTime: true,
-          
+
         },
         theme: {
           customCss: './src/css/custom.css',
@@ -62,8 +62,18 @@ const config = {
   ],
 
   themeConfig:
+
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
+      // giscus 评论功能
+      giscus: {
+        repo: 'DanielToyama/DanielToyama.github.io',
+        repoId: 'R_kgDOLTDI9A',
+        category: 'Announcements',
+        categoryId: 'DIC_kwDOLTDI9M4ClRpU',
+      },
+
+
       // Replace with your project's social card
       image: 'img/rabbit.jpg',
       navbar: {
@@ -73,14 +83,14 @@ const config = {
           src: 'img/logo.svg',
         },
         items: [
-          {to: '/blog', label: '博客', position: 'left'},
+          { to: '/blog', label: '博客', position: 'left' },
           {
             type: 'docSidebar',
             sidebarId: 'tutorialSidebar',
             position: 'left',
             label: '兔兔',
           },
-          
+
           {
             href: 'https://github.com/DanielToyama',
             label: 'MyGitHub',
@@ -102,7 +112,7 @@ const config = {
                 label: '兔兔的QQ',
                 to: 'https://qm.qq.com/cgi-bin/qm/qr?k=cUojLoZsBE0HvCHgOjuZOGNiJkZ06-z0&noverify=0&personal_qrcode_source=3',
               },
-               {
+              {
                 label: '兔兔的哔哩哔哩主页',
                 href: 'https://space.bilibili.com/1333478733',
               },
@@ -158,12 +168,12 @@ const config = {
     },
     ...(isProd && cloudflareToken
       ? [
-          {
-            src: 'https://static.cloudflareinsights.com/beacon.min.js',
-            async: true,
-            'data-cf-beacon': `{"token": "${cloudflareToken}"}`,
-          },
-        ] 
+        {
+          src: 'https://static.cloudflareinsights.com/beacon.min.js',
+          async: true,
+          'data-cf-beacon': `{"token": "${cloudflareToken}"}`,
+        },
+      ]
       : []),
   ],
 };
