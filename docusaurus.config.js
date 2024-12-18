@@ -149,7 +149,7 @@ const config = {
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} 兔兔的个人小家. Built with Docusaurus.<br /><img style="width:30px;height:30px;margin-bottom:-10px"src = "https://moe.one/view/img/ico64.png"/><a href="https://icp.gov.moe/?keyword=20240512" target="_blank">萌ICP备20240512号</a>`,
+        copyright: `Copyright © ${new Date().getFullYear()} 兔兔的个人小家. Built with Docusaurus.<br />本网站文章内容依据<a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank">CC BY-SA 4.0</a>许可证进行授权。转载请附上出处链接（如果能顺带通知我就更好了^_^）<br /><img style="width:30px;height:30px;margin-bottom:-10px"src = "https://moe.one/view/img/ico64.png"/><a href="https://icp.gov.moe/?keyword=20240512" target="_blank">萌ICP备20240512号</a>`,
       },
       prism: {
         theme: prismThemes.github,
