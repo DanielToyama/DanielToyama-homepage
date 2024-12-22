@@ -1,40 +1,54 @@
 import React, { useState, useEffect } from 'react';
 
-const IframeWithDynamicSrc = ({ lightModeSrc, darkModeSrc, width = '600', height = '400' }) => {
+const IframeWithDynamicSrc = ({ lightModeSrc, darkModeSrc, width = '600', height = '400', mobileWidth = '350', mobileHeight = '240' }) => {
+  const [iframeWidth, setIframeWidth] = useState(width);
+  const [iframeHeight, setIframeHeight] = useState(height);
   const [iframeSrc, setIframeSrc] = useState('');
 
-  // 更新 iframe 的 src
-  const updateIframeSrc = () => {
+  const updateIframeSrcAndSize = () => {
     const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
+
+    // 设置主题和设备类型
     setIframeSrc(isDarkMode ? darkModeSrc : lightModeSrc);
+
+    // 根据屏幕宽度判断是否为移动端
+    if (/Mobi|Android|iPhone/i.test(navigator.userAgent)) {
+      setIframeWidth(mobileWidth); // 移动端宽度
+      setIframeHeight(mobileHeight); // 移动端高度
+    } else {
+      setIframeWidth(width); // 桌面端宽度
+      setIframeHeight(height); // 桌面端高度
+    }
   };
 
   useEffect(() => {
-    // 初始化时检查一次
-    updateIframeSrc();
+    updateIframeSrcAndSize();  // 初始化时更新
 
-    // 使用 MutationObserver 来监听 data-theme 的变化
-    const observer = new MutationObserver(() => {
-      updateIframeSrc();  // 监听到变化时更新 iframe
-    });
-    
-    // 只监听 data-theme 属性变化
+    // 监听屏幕尺寸变化
+    const resizeListener = () => {
+      updateIframeSrcAndSize(); // 屏幕大小变化时更新
+    };
+
+    window.addEventListener('resize', resizeListener);
+
+    // 监听 data-theme 的变化
+    const observer = new MutationObserver(updateIframeSrcAndSize);
     observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ['data-theme'],
     });
 
-    // 清除 MutationObserver
     return () => {
-      observer.disconnect();
+      window.removeEventListener('resize', resizeListener); // 清除监听
+      observer.disconnect(); // 清除 MutationObserver
     };
-  }, [lightModeSrc, darkModeSrc]); // 仅依赖于 src 更新
+  }, [lightModeSrc, darkModeSrc, width, height, mobileWidth, mobileHeight]);
 
   return (
     <iframe
       src={iframeSrc}
-      width={width}
-      height={height}
+      width={iframeWidth}
+      height={iframeHeight}
       frameBorder="0"
       title="Themed Iframe"
     />
