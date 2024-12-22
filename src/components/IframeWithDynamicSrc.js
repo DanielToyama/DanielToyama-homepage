@@ -3,27 +3,32 @@ import React, { useState, useEffect } from 'react';
 const IframeWithDynamicSrc = ({ lightModeSrc, darkModeSrc, width = '600', height = '400' }) => {
   const [iframeSrc, setIframeSrc] = useState('');
 
-  // 检查当前的主题状态
+  // 更新 iframe 的 src
   const updateIframeSrc = () => {
     const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
     setIframeSrc(isDarkMode ? darkModeSrc : lightModeSrc);
   };
 
   useEffect(() => {
-    // 初始化时调用一次
+    // 初始化时检查一次
     updateIframeSrc();
 
-    // 监听 theme 变化
-    const observer = new MutationObserver(updateIframeSrc);
+    // 使用 MutationObserver 来监听 data-theme 的变化
+    const observer = new MutationObserver(() => {
+      updateIframeSrc();  // 监听到变化时更新 iframe
+    });
+    
+    // 只监听 data-theme 属性变化
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['data-theme'], // 只监听 data-theme 属性变化
+      attributeFilter: ['data-theme'],
     });
 
+    // 清除 MutationObserver
     return () => {
       observer.disconnect();
     };
-  }, [lightModeSrc, darkModeSrc]);
+  }, [lightModeSrc, darkModeSrc]); // 仅依赖于 src 更新
 
   return (
     <iframe
