@@ -2,11 +2,14 @@
 sidebar_position: 1
 ---
 
+import IframeWithDynamicSrc from '@site/src/components/IframeWithDynamicSrc';
 
 
 # 舞萌国服数据转Aqua服工具
 
 ---
+
+2024.12.22 修复部分错误导致的部分存档无法进入游戏
 
 2024.12.20 添加落雪maimai存档转换
 
@@ -18,6 +21,10 @@ sidebar_position: 1
 
 [全屏](https://danieltoyama.github.io/MaiData2Aqua/maidatatrans.html)
 
-<iframe src="https://danieltoyama.github.io/MaiData2Aqua/maidatatrans.html" width="500px" height="500px"></iframe>
 
-
+<IframeWithDynamicSrc 
+  lightModeSrc="https://danieltoyama.github.io/MaiData2Aqua/maidatatrans.html" 
+  darkModeSrc="https://danieltoyama.github.io/MaiData2Aqua/maidatatrans.html?style=dark" 
+  width="800" 
+  height="800" 
+/>
