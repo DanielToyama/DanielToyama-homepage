@@ -9,6 +9,8 @@ import IframeWithDynamicSrc from '@site/src/components/IframeWithDynamicSrc';
 
 ---
 
+2024.12.28 添加水鱼api存档转换支持
+
 2024.12.22 修复部分错误导致的部分存档无法进入游戏
 
 2024.12.20 添加落雪maimai存档转换
