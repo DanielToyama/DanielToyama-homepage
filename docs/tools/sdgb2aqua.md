@@ -29,5 +29,5 @@ import IframeWithDynamicSrc from '@site/src/components/IframeWithDynamicSrc';
   darkModeSrc="https://danieltoyama.github.io/MaiData2Aqua/maidatatrans.html?style=dark" 
   width="800" 
   height="800"  
-  mobileHeight="840"
+  mobileHeight="940"
 />
