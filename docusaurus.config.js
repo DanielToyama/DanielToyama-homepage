@@ -22,7 +22,7 @@ const config = {
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
   organizationName: 'DanielToyama', // Usually your GitHub org/user name.
-  projectName: 'DanielToyama.github.io', // Usually your repo name.
+  projectName: 'DanielToyama/DanielToyama-homepage', // Usually your repo name.
   deploymentBranch: 'gh-pages',
   trailingSlash: false,
 
@@ -67,7 +67,7 @@ const config = {
     ({
       // giscus 评论功能
       giscus: {
-        repo: 'DanielToyama/DanielToyama.github.io',
+        repo: 'DanielToyama/DanielToyama-homepage',
         repoId: 'R_kgDOLTDI9A',
         category: 'Announcements',
         categoryId: 'DIC_kwDOLTDI9M4ClRpU',
