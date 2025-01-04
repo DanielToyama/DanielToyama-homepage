@@ -27,7 +27,7 @@ import IframeWithDynamicSrc from '@site/src/components/IframeWithDynamicSrc';
 
 2.使用[lxns.html](https://danieltoyama.github.io/MaiData2Aqua/lxns.html)从落雪maimai工具转换
 
-3.使用[divingfish.html](https://danieltoyama.github.io/MaiData2Aqua/divingfish.html)从水鱼maimai工具转换
+3.使用[divingfish.html](https://danieltoyama.github.io/MaiData2Aqua/divingfish.html)从水鱼maimai工具转换(P.S.:因为使用了Cloudfare的服务可能部分地区需要使用VPN才能正常使用)
 
 4.本地启动Nodejs环境使用[index.js](https://danieltoyama.github.io/MaiData2Aqua/index.js)转换麦当劳机器人获取的数据（非常不推荐）
 
