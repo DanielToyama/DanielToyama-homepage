@@ -23,6 +23,10 @@ import IframeWithDynamicSrc from '@site/src/components/IframeWithDynamicSrc';
 
 请选择你的阵营（）
 
+:::danger
+
+注意，请在进行任何操作前确保备份（下载原有存档数据并且妥善保存），若有潜在的bug可能会毁了你的存档！！！
+
 1.在tg某麦当劳机器人使用/getplaydata json下载gamedata.json打开[maidatatrans.html](https://danieltoyama.github.io/MaiData2Aqua/maidatatrans.html),导入gamedata.json并且转换
 
 2.使用[lxns.html](https://danieltoyama.github.io/MaiData2Aqua/lxns.html)从落雪maimai工具转换
