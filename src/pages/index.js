@@ -8,7 +8,13 @@ export default function HomePage() {
     // 定义背景图片链接数组
 
     const desktopBackgroundImages = [
+        'https://prod-alicdn-community.kurobbs.com/forum/c65e53d7195b48e99236a762c03ff7cc20250216.png',
         'https://patchwiki.biligame.com/images/bangdream/5/5b/9eyud0atxb21umz3oyh8j235me9h3wz.png',
+        'https://prod-alicdn-community.kurobbs.com/forum/77004cf102f4407aab51a8ba576ec49720250524.jpg',
+        'https://prod-alicdn-community.kurobbs.com/forum/1205b68b72af46ebb86161282326db2020250209.jpg',
+        'https://prod-alicdn-community.kurobbs.com/forum/8687d6547b29411293f131784b195b9a20250209.jpg',
+        'https://prod-alicdn-community.kurobbs.com/forum/05e4d5897b8b49f9b024029023bbfb3320241230.jpg',
+        'https://prod-alicdn-community.kurobbs.com/forum/d69b5df0db0243c4b2bb742e6395caab20250216.png',
         'https://patchwiki.biligame.com/images/bangdream/b/b8/hv5payemg0479latvd1zxisburrv0cj.png',
         'https://patchwiki.biligame.com/images/ba/3/30/k2pgz6uy5ypousdel9f0ggz7s24wa94.png',
         'https://cdnimg.gamekee.com/wiki2.0/images/w_3475/h_2583/829/43637/2022/7/25/428958.png',
@@ -36,7 +42,10 @@ export default function HomePage() {
         "https://prod-alicdn-community.kurobbs.com/forum/fac40f7875194fe4a4422a2a0ded679920240627.jpg",
         "https://prod-alicdn-community.kurobbs.com/forum/543694508f66411997515c66e56e91f720240627.jpg",
         "https://prod-alicdn-community.kurobbs.com/forum/50797ec1b20e4d30b0b30296bb438d9b20240517.jpg",
-        "https://prod-alicdn-community.kurobbs.com/forum/de208e34155e4b58acef4c77aab941a820241114.png"
+        "https://prod-alicdn-community.kurobbs.com/forum/de208e34155e4b58acef4c77aab941a820241114.png",
+        'https://prod-alicdn-community.kurobbs.com/forum/e114f6ef7d3e46fbb816415d21ec384a20250209.jpg',
+        'https://prod-alicdn-community.kurobbs.com/forum/9f5a31c67cb74e98ba992c96f348662820250209.jpg',
+
 
     ];
 

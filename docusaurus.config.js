@@ -126,6 +126,10 @@ const config = {
                 href: 'https://qhlg.flime.top/',
               },
               {
+                label: '猫雨音の小猫窝',
+                href: 'http://rthmiho.top',
+              },
+              {
                 label: 'KasumiBot(By 户山兔兔）',
                 href: 'https://ksmbot.top',
               },
