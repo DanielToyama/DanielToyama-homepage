@@ -7,7 +7,13 @@ import IframeWithDynamicSrc from '@site/src/components/IframeWithDynamicSrc';
 
 # 舞萌国服数据转Aqua服工具
 
+:::tip 好消息！
+[现在船新的Sega系音游私服————Munet服务器已原生支持数据转换功能！您可以直接在Munet服务器上完成数据转换，无需使用其他工具。其已经对导入流程进行了重构和优化，导入更加快速丝滑，快来点击此处试试吧！](https://mumur.net)
+
+:::
+
 ---
+2025.06.29 支持保存token，同时添加更多文字提示
 
 2024.12.28 添加水鱼api存档转换支持
 
@@ -16,6 +22,7 @@ import IframeWithDynamicSrc from '@site/src/components/IframeWithDynamicSrc';
 2024.12.20 添加落雪maimai存档转换
 
 ---
+
 
 随手写的一个用来把国服舞萌的部分游戏记录导入到私服的小工具，也算是希望能帮到大家了。
 
