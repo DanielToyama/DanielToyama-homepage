@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网址跳转测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #fff5f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(255, 153, 184, 0.3);
+            max-width: 500px;
+            width: 90%;
+        }
+        h1 {
+            color: #ff99b8;
+            margin-bottom: 20px;
+        }
+        .input-group {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ff99b8;
+            border-radius: 8px 0 0 8px;
+            font-size: 16px;
+            outline: none;
+        }
+        button {
+            background-color: #ff99b8;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 0 8px 8px 0;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #ff7ba9;
+        }
+        .instructions {
+            margin-top: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>网址跳转测试</h1>
+        <div class="input-group">
+            <input type="text" id="urlInput" placeholder="请输入完整的网址 (例如: https://www.example.com)">
+            <button onclick="redirectToUrl()">跳转</button>
+        </div>
+        <p class="instructions">用于测试没有URL输入控件的程序内置浏览器</p>
+    </div>
+
+    <script>
+        function redirectToUrl() {
+            const urlInput = document.getElementById('urlInput').value.trim();
+            
+            if (!urlInput) {
+                alert('请输入网址');
+                return;
+            }
+            
+            // 检查是否包含协议头，如果没有则添加https://
+            let fullUrl = urlInput;
+            if (!urlInput.startsWith('http://') && !urlInput.startsWith('https://')) {
+                fullUrl = 'https://' + urlInput;
+            }
+            
+            // 验证URL格式
+            try {
+                new URL(fullUrl);
+                window.location.href = fullUrl;
+            } catch (e) {
+                alert('请输入有效的网址格式 (例如: example.com 或 https://example.com)');
+            }
+        }
+        
+        // 允许按Enter键触发跳转
+        document.getElementById('urlInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                redirectToUrl();
+            }
+        });
+    </script>
+</body>
+</html>

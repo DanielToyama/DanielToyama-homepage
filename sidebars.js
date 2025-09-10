@@ -34,7 +34,8 @@ const sidebars = {
       type: 'category',
       label: '兔兔的妙妙宝箱',
       items: [
-        'tools/sdgb2aqua',
+        'tools/webJumpAny',
+        'tools/a',
         'tools/orztools',
       ],
     },
