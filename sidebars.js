@@ -35,7 +35,7 @@ const sidebars = {
       label: '兔兔的妙妙宝箱',
       items: [
         'tools/webJumpAny',
-        'tools/a',
+        'tools/sdgb2aqua',
         'tools/orztools',
       ],
     },
