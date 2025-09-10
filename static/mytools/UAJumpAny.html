@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UA 自定义跳转器</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 500px;
+        }
+        h1 {
+            color: #ff99b8;
+            text-align: center;
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #ff99b8;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #ff7ba9;
+        }
+        .ua-presets {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .ua-presets button {
+            flex: 1;
+            background-color: #e0e0e0;
+            color: #333;
+            font-size: 14px;
+        }
+        .ua-presets button:hover {
+            background-color: #d0d0d0;
+        }
+    </style>
+       <script>
+        // Service Worker 注册（放在 head）
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/mytools/sw-ua-override.js')
+                .then(reg => console.log('Service Worker 注册成功'))
+                .catch(err => console.error('Service Worker 注册失败:', err));
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>UA 自定义跳转器</h1>
+        <input type="text" id="urlInput" placeholder="输入目标网址 (如 https://example.com)" required>
+        <input type="text" id="uaInput" placeholder="输入自定义 User-Agent (可选)">
+        
+        <div class="ua-presets">
+            <button onclick="setPcUA('chrome')">Chrome (电脑)</button>
+            <button onclick="setPcUA('firefox')">Firefox (电脑)</button>
+            <button onclick="setPcUA('edge')">Edge (电脑)</button>
+        </div>
+        
+        <button onclick="redirectWithUA()">跳转</button>
+    </div>
+
+    <script>
+        
+        // 预设的电脑 UA
+        const pcUAs = {
+            chrome: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            firefox: "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0",
+            edge: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0",
+        };
+
+        // 一键设置电脑 UA
+        function setPcUA(browser) {
+            document.getElementById('uaInput').value = pcUAs[browser];
+        }
+
+        // 跳转并应用 UA
+        function redirectWithUA() {
+            const url = document.getElementById('urlInput').value.trim();
+            const ua = document.getElementById('uaInput').value.trim();
+
+            if (!url) {
+                alert('请输入目标网址！');
+                return;
+            }
+
+            // 存储 UA 到 localStorage（Service Worker 会读取）
+            if (ua) {
+                localStorage.setItem('customUA', ua);
+            }
+
+            // 跳转到目标 URL（Service Worker 会拦截并修改 UA）
+            window.location.href = url;
+        }
+    </script>
+</body>
+</html>
