@@ -2,25 +2,41 @@
 sidebar_position: 1
 ---
 
+
+
+import DxRating from '@site/src/components/DxRating';
+
+import PhigrosRks from '@site/src/components/PhigrosRks';
+
+import OrzRat from '@site/src/components/OrzRat'
+
 # 关于兔兔
 
 欢迎你的来访！我是户山兔兔！音游人/技术爱好者/二次元
 
 ## 音游人
 
+
+<!-- 
 Phigros15.3/Orzmic12.49/Malody5Dan/Rotaeno14.7
+
+ -->
+
+<PhigrosRks value="15.88" />
+<OrzRat value="13.278" />
+<DxRating/>
 
 其实是基本上什么音游都玩，板子上面满满一页都是音游。曾经被朋友安利了音游，然后因为享受节奏的感觉成为了高浓度的音游人。
 
 
-<img src="../docs/phi.jpg" alt="Image Alt Text" width="420" height="800" />
-
+<!-- <img src="../docs/phi.jpg" alt="Image Alt Text" width="420" height="800" />
 
 <img src="../docs/orz.jpg" alt="Image Alt Text" width="500" height="800" />
 <img src="../docs/mai.jpg" alt="Image Alt Text" width="1200" height="600" />
 <img src="../docs/pjsk.jpg" alt="Image Alt Text" width="650" height="470" />
-<img src="../docs/pad.jpg" alt="Image Alt Text" width="500" height="400" />
 
+ -->
+ <img src="../docs/pad.jpg" alt="Image Alt Text" width="500" height="400" />
 主要玩的音游其实就几个，不过有了其他的新音游也会第一时间去体验
 
 ## 技术爱好者
