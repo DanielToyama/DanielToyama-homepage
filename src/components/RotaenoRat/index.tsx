@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useMemo } from 'react';
 import styles from './RotaenoRat.module.css';
 
 interface RotaenoRatProps {
@@ -12,9 +12,8 @@ const RotaenoRat: React.FC<RotaenoRatProps> = ({
   value = 16.50,
   scale = 1
 }) => {
-  const [tier, setTier] = useState<number | string>(1);
-  
-  useEffect(() => {
+  // 直接计算tier值（无需状态管理）
+  const tier = useMemo(() => {
     const tierRanges = [
       { max: 2, tier: 1 },
       { max: 3, tier: 2 },
@@ -34,9 +33,14 @@ const RotaenoRat: React.FC<RotaenoRatProps> = ({
       { max: Infinity, tier: '17_5' }
     ];
     
-    const currentTier = tierRanges.find(range => value < range.max)?.tier || 1;
-    setTier(currentTier);
+    return tierRanges.find(range => value < range.max)?.tier || 1;
   }, [value]);
+
+  // 使用useMemo缓存图片路径
+  const imageSrc = useMemo(() => 
+    `/assets/rtn/Rating Tier ${tier}.png`,
+    [tier]
+  );
 
   const containerStyle = {
     transform: `scale(${scale})`,
@@ -48,7 +52,7 @@ const RotaenoRat: React.FC<RotaenoRatProps> = ({
       <div className={styles.ratingContainer} style={containerStyle}>
         <div className={styles.tier}>
           <img 
-            src={`/assets/rtn/Rating Tier ${tier}.png`} 
+            src={imageSrc}  // 使用缓存路径
             alt={`Tier ${tier}`}
             style={{ 
               width: `${40 * scale}px`,
