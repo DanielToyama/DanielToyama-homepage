@@ -17,12 +17,12 @@ import OrzRat from '@site/src/components/OrzRat'
 ## 音游人
 
 
-<!-- 
+
 Phigros15.3/Orzmic12.49/Malody5Dan/Rotaeno14.7
 
- -->
 
-<PhigrosRks value="15.88" />
+
+<PhigrosRks value="15.81" />
 <OrzRat value="13.278" />
 <DxRating/>
 
