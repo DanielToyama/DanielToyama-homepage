@@ -1,0 +1,85 @@
+.profileContainer {
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.532);
+  padding:  0px 1px 0px 1px;
+  border-radius: 5px;
+  width: fit-content;
+}
+
+.ratingContainer {
+  display: flex;
+  align-items: center;
+}
+
+.tier {
+  display: flex;
+  align-items: center;
+}
+
+.tier img {
+  object-fit: contain;
+}
+
+.rating {
+  display: flex;
+  align-items: center;
+  margin-left: 10px;
+}
+
+.rating::before {
+  content: '';
+  display: block;
+  width: 2px;
+  height: 125%;
+  margin-left: -1px;
+  margin-right: 8px;
+}
+
+.rating h3 {
+  font-size: 14px;
+  opacity: 0.81;
+  margin-right: 5px;
+  color: #fff;
+  font-weight: normal;
+}
+
+.rating p {
+  font-size: 16px;
+  color: #fff;
+  margin: 0;
+}
+
+/* Tier color classes 保持不变 *//* Tier color classes */
+.tier1 { background: #8f23; }
+.tier1::before { background: #8f2; }
+.tier2 { background: #24ff2033; }
+.tier2::before { background: #24ff24; }
+.tier3 { background: #29ff6d33; }
+.tier3::before { background: #29ff6d; }
+.tier4 { background: #3ae2fe33; }
+.tier4::before { background: #3ae2fe; }
+.tier5 { background: #3ae6fe33; }
+.tier5::before { background: #3ae6fe; }
+.tier6 { background: #71d8fe33; }
+.tier6::before { background: #71d8fe; }
+.tier7 { background: #fbd82433; }
+.tier7::before { background: #fbd824; }
+.tier8 { background: #fbe02533; }
+.tier8::before { background: #fbe025; }
+.tier9 { background: #fa001b33; }
+.tier9::before { background: #fa001b; }
+.tier10 { background: #fb00af33; }
+.tier10::before { background: #fb00af; }
+.tier11 { background: #fd00f233; }
+.tier11::before { background: #fd00f2; }
+.tier15 { background: #fbcf6633; }
+.tier15::before { background: linear-gradient(to top, #ffe64b, #ffba75); }
+.tier16 { background: #0d03; }
+.tier16::before { background: linear-gradient(to top, #0a0, #6ffb00); }
+.tier16_5 { background: #00ade633; }
+.tier16_5::before { background: linear-gradient(to top, #1555c0, #00fbee); }
+.tier17 { background: #f5720033; }
+.tier17::before { background: linear-gradient(to top, #d14700, #ffad00); }
+.tier17_5 { background: #ac00eb33; }
+.tier17_5::before { background: linear-gradient(to top, #6400bf, #e100f6); }
