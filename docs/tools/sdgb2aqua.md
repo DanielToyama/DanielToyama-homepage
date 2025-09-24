@@ -44,4 +44,6 @@ import IframeWithDynamicSrc from '@site/src/components/IframeWithDynamicSrc';
 
 4.本地启动Nodejs环境使用[index.js](https://danieltoyama.github.io/MaiData2Aqua/index.js)转换麦当劳机器人获取的数据（非常不推荐）
 
+如果觉得对你有帮助，点个star支持一下呗~
+
 github链接：https://github.com/DanielToyama/MaiData2Aqua
