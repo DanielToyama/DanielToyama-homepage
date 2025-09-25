@@ -20,7 +20,15 @@ import MilthmReality from '@site/src/components/MilthmReality';
 
 ## 音游人
 
-
+<iframe
+    frameborder="no"
+    border="0"
+    marginwidth="0"
+    marginheight="0"
+    width="40%"
+    height="110"
+    src="//music.163.com/outchain/player?type=2&id=1818777226&auto=1&height=90">
+</iframe>
 
 Phigros15.81/Orzmic13.278/Malody5Dan/Rotaeno16.545
 
@@ -83,4 +91,5 @@ Phigros15.81/Orzmic13.278/Malody5Dan/Rotaeno16.545
 喜欢交朋友，自来熟
 
 这就是兔兔哦，也希望和你成为朋友哦~~
+
 
