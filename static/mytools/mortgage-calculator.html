@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<!-- saved from url=(0050)http://182.61.5.104:15897/mortgage-calculator.html -->
+<html lang="zh-CN"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>首付与月供计算器</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff5f8;
+            color: #333;
+        }
+        h1 {
+            color: #ff99b8;
+            text-align: center;
+        }
+        .calculator {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(255, 153, 184, 0.2);
+        }
+        .slider-container {
+            margin: 30px 0;
+        }
+        .slider {
+            width: 100%;
+            height: 10px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #ffd6e4;
+            outline: none;
+            border-radius: 5px;
+        }
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #ff99b8;
+            cursor: pointer;
+        }
+        .slider::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #ff99b8;
+            cursor: pointer;
+        }
+        .value-display {
+            text-align: center;
+            font-size: 24px;
+            margin: 10px 0;
+            color: #ff99b8;
+        }
+        .labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            color: #888;
+        }
+        .input-group {
+            margin: 20px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #666;
+        }
+        select, input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ff99b8;
+            border-radius: 5px;
+            background-color: white;
+            font-size: 16px;
+            color: #333;
+            box-sizing: border-box;
+        }
+        .result-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        .result {
+            width: 48%;
+            padding: 15px;
+            background-color: #ffebf1;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .result-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #ff6699;
+        }
+        .result-label {
+            margin-bottom: 10px;
+            color: #666;
+        }
+footer {
+            background: #ff99b8;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: auto;
+        }
+        
+        .footer-content {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .footer-link {
+            color: #ff19c8;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+        
+        .footer-link:hover {
+            color: white;
+            text-decoration: underline;
+        }
+        .note {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #ff99b8;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>首付与月供计算器</h1>
+    <div class="calculator">
+        <div class="slider-container">
+            <input type="range" min="100" max="1000" value="340" class="slider" id="priceSlider" step="2">
+            <div class="value-display" id="priceValue">340万</div>
+            <div class="labels">
+                <span>100万</span>
+                <span>1000万</span>
+            </div>
+        </div>
+        
+        <div class="input-group">
+            <label for="downPayment">首付成数:</label>
+            <select id="downPayment">
+                <option value="0.1">1成 (10%)</option>
+                <option value="0.15" selected="">1.5成 (15%)</option>
+                <option value="0.2">2成 (20%)</option>
+            </select>
+        </div>
+        
+        <div class="input-group">
+            <label for="loanYears">贷款年限 (年):</label>
+            <input type="number" id="loanYears" min="1" max="30" value="30">
+        </div>
+        
+        <div class="input-group">
+            <label for="lprRate">LPR利率 (%):</label>
+            <input type="number" id="lprRate" min="0.1" max="10" step="0.01" value="3.05">
+      
+        
+        <div class="result-section">
+            <div class="result">
+                <div class="result-label">首付金额</div>
+                <div class="result-value" id="downPaymentResult">51万</div>
+            </div>
+            <div class="result">
+                <div class="result-label">月供金额</div>
+                <div class="result-value" id="monthlyPaymentResult">¥12,262.43</div>
+            </div>
+        </div>
+        
+        <div class="note">
+            注：银行贷款首付金额抹除小数点后部分，贷款金额包含首付小数点部分
+
+	  <p id="footer-year">© 2025 <a href="https://danieltoyama.fun/" class="footer-link">户山兔兔</a>. 保留所有权利.</p>
+
+        </div>
+    </div>
+	
+
+    <script>
+        const priceSlider = document.getElementById('priceSlider');
+        const priceValue = document.getElementById('priceValue');
+        const downPaymentSelect = document.getElementById('downPayment');
+        const loanYearsInput = document.getElementById('loanYears');
+        const lprRateInput = document.getElementById('lprRate');
+        const downPaymentResult = document.getElementById('downPaymentResult');
+        const monthlyPaymentResult = document.getElementById('monthlyPaymentResult');
+        
+        // 初始化计算
+        calculateAll();
+        
+        // 监听所有输入变化
+        priceSlider.addEventListener('input', function() {
+            priceValue.textContent = this.value + '万';
+            calculateAll();
+        });
+        
+        downPaymentSelect.addEventListener('change', calculateAll);
+        loanYearsInput.addEventListener('input', calculateAll);
+        lprRateInput.addEventListener('input', calculateAll);
+        
+        function calculateAll() {
+            const price = parseInt(priceSlider.value);
+            const downPaymentRate = parseFloat(downPaymentSelect.value);
+            
+            // 计算首付（抹除小数点后的部分）
+            const downPayment = Math.floor(price * downPaymentRate);
+            downPaymentResult.textContent = downPayment + '万';
+            
+            // 计算贷款金额（包含首付小数点部分）
+            const loanAmount = price - downPayment;
+            
+            // 计算月供
+            const loanYears = parseInt(loanYearsInput.value);
+            const lprRate = parseFloat(lprRateInput.value) / 100;
+            const monthlyRate = lprRate / 12;
+            const months = loanYears * 12;
+            
+            // 等额本息月供计算公式
+            const monthlyPayment = loanAmount * 10000 * monthlyRate * 
+                                 Math.pow(1 + monthlyRate, months) / 
+                                 (Math.pow(1 + monthlyRate, months) - 1);
+            
+            // 格式化显示月供
+	function round(number, precision) {
+  return Math.round(+number + "e" + precision) / Math.pow(10, precision);
+  //same as:
+  //return Number(Math.round(+number + 'e' + precision) + 'e-' + precision);
+}
+            monthlyPaymentResult.textContent = '¥' +round(monthlyPayment,2).toLocaleString();
+        }
+ // 添加页脚年份更新脚本
+        function updateYear() {
+            const year = new Date().getFullYear();
+            document.getElementById('footer-year').innerHTML = `© ${year} <a href="https://danieltoyama.fun" class="footer-link">户山兔兔</a>. 保留所有权利.`;
+        }
+        
+        // 页面加载时立即更新
+        updateYear();
+    </script>
+
+</div></body></html>

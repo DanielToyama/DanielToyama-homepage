@@ -38,6 +38,7 @@ const sidebars = {
         'tools/sdgb2aqua',
         'tools/orztools',
         'tools/Mai-BonusClear',
+        'tools/mortgage-calculator',
       ],
     },
   ],
