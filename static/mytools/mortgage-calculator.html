@@ -212,7 +212,7 @@ footer {
             const downPaymentRate = parseFloat(downPaymentSelect.value);
             
             // 计算首付（抹除小数点后的部分）
-            const downPayment = Math.floor(price * downPaymentRate);
+            const downPayment = Math.ceil(price * downPaymentRate);
             downPaymentResult.textContent = downPayment + '万';
             
             // 计算贷款金额（包含首付小数点部分）
