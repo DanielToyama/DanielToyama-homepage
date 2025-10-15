@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<!-- saved from url=(0050)http://182.61.5.104:15897/mortgage-calculator.html -->
-<html lang="zh-CN"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>首付与月供计算器</title>
     <style>
@@ -57,6 +57,40 @@
             margin: 10px 0;
             color: #ff99b8;
         }
+        .price-input-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+        .price-input {
+            width: 120px;
+            padding: 10px;
+            border: 2px solid #ff99b8;
+            border-radius: 5px;
+            background-color: white;
+            font-size: 16px;
+            color: #333;
+            text-align: center;
+            margin: 0 10px;
+        }
+        .adjust-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #ff99b8;
+            color: white;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s;
+        }
+        .adjust-button:hover {
+            background-color: #ff6699;
+        }
         .labels {
             display: flex;
             justify-content: space-between;
@@ -102,7 +136,7 @@
             margin-bottom: 10px;
             color: #666;
         }
-footer {
+        footer {
             background: #ff99b8;
             color: white;
             text-align: center;
@@ -138,6 +172,11 @@ footer {
     <h1>首付与月供计算器</h1>
     <div class="calculator">
         <div class="slider-container">
+            <div class="price-input-container">
+                <button class="adjust-button" id="decreasePrice">-</button>
+                <input type="number" class="price-input" id="priceInput" min="100" max="1000" value="340">
+                <button class="adjust-button" id="increasePrice">+</button>
+            </div>
             <input type="range" min="100" max="1000" value="340" class="slider" id="priceSlider" step="2">
             <div class="value-display" id="priceValue">340万</div>
             <div class="labels">
@@ -150,7 +189,7 @@ footer {
             <label for="downPayment">首付成数:</label>
             <select id="downPayment">
                 <option value="0.1">1成 (10%)</option>
-                <option value="0.15" selected="">1.5成 (15%)</option>
+                <option value="0.15" selected>1.5成 (15%)</option>
                 <option value="0.2">2成 (20%)</option>
             </select>
         </div>
@@ -163,31 +202,32 @@ footer {
         <div class="input-group">
             <label for="lprRate">LPR利率 (%):</label>
             <input type="number" id="lprRate" min="0.1" max="10" step="0.01" value="3.05">
-      
+        </div>
         
         <div class="result-section">
             <div class="result">
                 <div class="result-label">首付金额</div>
-                <div class="result-value" id="downPaymentResult">51万</div>
+                <div class="result-value" id="downPaymentResult">75万</div>
             </div>
             <div class="result">
                 <div class="result-label">月供金额</div>
-                <div class="result-value" id="monthlyPaymentResult">¥12,262.43</div>
+                <div class="result-value" id="monthlyPaymentResult">¥15,123</div>
             </div>
         </div>
         
         <div class="note">
             注：银行贷款首付金额抹除小数点后部分，贷款金额包含首付小数点部分
 
-	  <p id="footer-year">© 2025 <a href="https://danieltoyama.fun/" class="footer-link">户山兔兔</a>. 保留所有权利.</p>
-
+            <p id="footer-year">© 114514 <a href="https://danieltoyama.fun" class="footer-link">户山兔兔</a>. 保留所有权利.</p>
         </div>
     </div>
-	
 
     <script>
         const priceSlider = document.getElementById('priceSlider');
+        const priceInput = document.getElementById('priceInput');
         const priceValue = document.getElementById('priceValue');
+        const decreasePriceBtn = document.getElementById('decreasePrice');
+        const increasePriceBtn = document.getElementById('increasePrice');
         const downPaymentSelect = document.getElementById('downPayment');
         const loanYearsInput = document.getElementById('loanYears');
         const lprRateInput = document.getElementById('lprRate');
@@ -199,7 +239,37 @@ footer {
         
         // 监听所有输入变化
         priceSlider.addEventListener('input', function() {
-            priceValue.textContent = this.value + '万';
+            priceInput.value = this.value;
+            updatePriceDisplay();
+            calculateAll();
+        });
+        
+        priceInput.addEventListener('input', function() {
+            let value = parseInt(this.value);
+            if (isNaN(value)) value = 100;
+            if (value < 100) value = 100;
+            if (value > 1000) value = 1000;
+            this.value = value;
+            priceSlider.value = value;
+            updatePriceDisplay();
+            calculateAll();
+        });
+        
+        decreasePriceBtn.addEventListener('click', function() {
+            let value = parseInt(priceInput.value) - 1;
+            if (value < 100) value = 100;
+            priceInput.value = value;
+            priceSlider.value = value;
+            updatePriceDisplay();
+            calculateAll();
+        });
+        
+        increasePriceBtn.addEventListener('click', function() {
+            let value = parseInt(priceInput.value) + 1;
+            if (value > 1000) value = 1000;
+            priceInput.value = value;
+            priceSlider.value = value;
+            updatePriceDisplay();
             calculateAll();
         });
         
@@ -207,8 +277,12 @@ footer {
         loanYearsInput.addEventListener('input', calculateAll);
         lprRateInput.addEventListener('input', calculateAll);
         
+        function updatePriceDisplay() {
+            priceValue.textContent = priceInput.value + '万';
+        }
+        
         function calculateAll() {
-            const price = parseInt(priceSlider.value);
+            const price = parseInt(priceInput.value);
             const downPaymentRate = parseFloat(downPaymentSelect.value);
             
             // 计算首付（抹除小数点后的部分）
@@ -230,14 +304,13 @@ footer {
                                  (Math.pow(1 + monthlyRate, months) - 1);
             
             // 格式化显示月供
-	function round(number, precision) {
-  return Math.round(+number + "e" + precision) / Math.pow(10, precision);
-  //same as:
-  //return Number(Math.round(+number + 'e' + precision) + 'e-' + precision);
-}
-            monthlyPaymentResult.textContent = '¥' +round(monthlyPayment,2).toLocaleString();
+            function round(number, precision) {
+                return Math.round(+number + "e" + precision) / Math.pow(10, precision);
+            }
+            monthlyPaymentResult.textContent = '¥' + round(monthlyPayment, 2).toLocaleString();
         }
- // 添加页脚年份更新脚本
+        
+        // 添加页脚年份更新脚本
         function updateYear() {
             const year = new Date().getFullYear();
             document.getElementById('footer-year').innerHTML = `© ${year} <a href="https://danieltoyama.fun" class="footer-link">户山兔兔</a>. 保留所有权利.`;
@@ -246,5 +319,5 @@ footer {
         // 页面加载时立即更新
         updateYear();
     </script>
-
-</div></body></html>
+</body>
+</html>
