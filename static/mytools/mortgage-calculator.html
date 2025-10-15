@@ -244,11 +244,20 @@
             calculateAll();
         });
         
-        priceInput.addEventListener('input', function() {
+        priceInput.addEventListener('change', function() {
             let value = parseInt(this.value);
             if (isNaN(value)) value = 100;
-            if (value < 100) value = 100;
-            if (value > 1000) value = 1000;
+            value = Math.max(100, Math.min(1000, value));
+            this.value = value;
+            priceSlider.value = value;
+            updatePriceDisplay();
+            calculateAll();
+        });
+        
+        priceInput.addEventListener('blur', function() {
+            let value = parseInt(this.value);
+            if (isNaN(value)) value = 100;
+            value = Math.max(100, Math.min(1000, value));
             this.value = value;
             priceSlider.value = value;
             updatePriceDisplay();
@@ -257,7 +266,7 @@
         
         decreasePriceBtn.addEventListener('click', function() {
             let value = parseInt(priceInput.value) - 1;
-            if (value < 100) value = 100;
+            value = Math.max(100, value);
             priceInput.value = value;
             priceSlider.value = value;
             updatePriceDisplay();
@@ -266,7 +275,7 @@
         
         increasePriceBtn.addEventListener('click', function() {
             let value = parseInt(priceInput.value) + 1;
-            if (value > 1000) value = 1000;
+            value = Math.min(1000, value);
             priceInput.value = value;
             priceSlider.value = value;
             updatePriceDisplay();
