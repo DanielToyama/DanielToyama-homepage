@@ -150,6 +150,10 @@ const config = {
                 label: '兔兔的GitHub主页',
                 href: 'https://github.com/DanielToyama',
               },
+              {
+                label: '兔兔的Phira在线服务器',
+                href: 'https://iphira.danieltoyama.fun',
+              },
             ],
           },
         ],
