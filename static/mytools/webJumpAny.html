@@ -79,11 +79,11 @@
                 return;
             }
             
-            // 检查是否包含协议头，如果没有则添加https://
-            let fullUrl = urlInput;
-            if (!urlInput.startsWith('http://') && !urlInput.startsWith('https://')) {
-                fullUrl = 'https://' + urlInput;
-            }
+// 检查是否包含协议头，如果没有则添加https://
+let fullUrl = urlInput;
+if (!/^[a-zA-Z]+:\/\//.test(urlInput)) {
+    fullUrl = 'https://' + urlInput;
+}
             
             // 验证URL格式
             try {
