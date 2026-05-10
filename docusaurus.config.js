@@ -130,6 +130,10 @@ const config = {
                 href: 'http://rthmiho.top',
               },
               {
+                label: '皮梦の茶馆',
+                href: 'https://blog.07210700.xyz',
+              }
+              {
                 label: 'KasumiBot(By 户山兔兔）',
                 href: 'https://ksmbot.top',
               },
