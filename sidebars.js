@@ -37,7 +37,8 @@ const sidebars = {
         'tools/webJumpAny',
         'tools/sdgb2aqua',
         'tools/orztools',
-        'tools/Mai-BonusClear'
+        'tools/Mai-BonusClear',
+        'tools/PianoScribe'
       ],
     },
   ],

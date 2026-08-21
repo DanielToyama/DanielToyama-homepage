@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>弹琴记录器</title>
+<style>
+  :root {
+    --bg1: #ffe9f0;
+    --bg2: #e4edff;
+    --panel: #ffffff;
+    --panel2: #f6f8ff;
+    --text: #2b2b3a;
+    --muted: #8a8fa8;
+    --pink: #ff5c8a;
+    --blue: #3d7bfd;
+    --violet: #8a5cf5;
+    --border: #e3d9f0;
+    --chord-bg: #fff0f5;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 26px;
+    background: linear-gradient(160deg, var(--bg1), var(--bg2));
+    min-height: 100vh;
+    color: var(--text);
+    font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+  }
+  h1 { font-size: 20px; margin: 0 0 4px; color: var(--pink); }
+  .sub { color: var(--muted); font-size: 13px; margin-bottom: 18px; }
+  .title-row { display: flex; align-items: center; gap: 8px; margin-bottom: 18px; }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 18px;
+    box-shadow: 0 6px 20px rgba(140,120,200,.12);
+  }
+
+  /* keyboard */
+  .row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .row-label { width: 52px; font-size: 13px; color: var(--muted); font-weight: 600; }
+  .keymap-title { font-weight: 700; color: var(--pink); margin-bottom: 10px; }
+  .keymap-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .keymap-input {
+    width: 150px; padding: 7px 10px;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--panel2); color: var(--text);
+    font-size: 15px; letter-spacing: 2px; text-transform: lowercase;
+  }
+  .keymap-hint { color: var(--muted); font-size: 12px; margin-top: 8px; }
+  .key {
+    width: 58px; height: 60px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    user-select: none;
+    transition: transform .05s, background .1s, box-shadow .1s;
+  }
+  .key .note-label { font-size: 22px; font-weight: 700; line-height: 1; display:flex; }
+  .key .key-label { font-size: 11px; color: var(--muted); margin-top: 3px; }
+  .key.high .num { color: var(--pink); }
+  .key.mid .num { color: var(--blue); }
+  .key.low .num { color: var(--violet); }
+  .key.pressed {
+    background: linear-gradient(135deg, var(--pink), var(--blue));
+    transform: translateY(2px);
+    box-shadow: 0 0 14px rgba(255,92,138,.5);
+  }
+  .key.pressed .num, .key.pressed .key-label { color: #fff; }
+
+  /* controls */
+  .controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .btn {
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--panel2);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 14px;
+    transition: background .1s;
+  }
+  .btn:hover { background: #eef1ff; }
+  .btn.active { background: linear-gradient(135deg, var(--pink), var(--blue)); color: #fff; border-color: transparent; }
+  .btn.danger:hover { background: #ff7d9d; color: #fff; }
+  .spacer { flex: 1; }
+  .hint { color: var(--muted); font-size: 13px; }
+
+  /* score */
+  #score {
+    min-height: 120px;
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+  }
+  #score:empty::before {
+    content: "按琴键开始记录…";
+    color: var(--muted);
+    font-size: 16px;
+  }
+  .score-line { display: flex; flex-wrap: wrap; align-items: center; row-gap: 1.2em; column-gap: 0.5em; margin-bottom: 0.5em; }
+  .score-seg { display: inline-flex; align-items: center; white-space: nowrap; }
+  .entry { display: flex; flex-direction: column; align-items: center; }
+  .entry.chord {
+    background: var(--chord-bg);
+    border: 1px solid #ffd6e4;
+    border-radius: 10px;
+    padding: 2px 7px;
+  }
+  .bar {
+    color: var(--muted); font-weight: 700;
+    margin: 0 0.15em;
+    align-self: center;
+    height: 2.5em;
+    display: flex; align-items: center;
+    font-size: 1.3em;
+  }
+  .edit-panel {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+  }
+  .edit-title { font-weight: 700; color: var(--pink); margin-bottom: 8px; }
+  .edit-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .entry.editing { outline: 3px solid var(--pink); outline-offset: 2px; border-radius: 8px; }
+  .entry.playing {
+    outline: 3px solid var(--blue);
+    outline-offset: 2px;
+    border-radius: 8px;
+    box-shadow: 0 0 14px rgba(61,123,253,.6);
+  }
+  .note-cell {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    height: 2.9em; width: 1.5em;
+  }
+  /* 按键模式：更紧凑 */
+  #score.key-mode .score-line { row-gap: 0.6em; margin-bottom: 0.25em; }
+  #score.key-mode .entry.chord { padding: 0 4px; }
+  #score.key-mode .note-cell { height: 2.1em; }
+  .oct-dot { height: 0.75em; line-height: 0.75em; font-size: 0.85em; color: inherit; }
+  .num { font-size: 1.35em; font-weight: 700; line-height: 1; }
+  .note-cell.high .num { color: var(--pink); }
+  .note-cell.mid .num { color: var(--blue); }
+  .note-cell.low .num { color: var(--violet); }
+
+  .footer { color: var(--muted); font-size: 13px; margin-top: 8px; }
+  .kbd {
+    background: var(--panel2); border: 1px solid var(--border);
+    border-radius: 4px; padding: 1px 6px; font-size: 12px;
+  }
+</style>
+</head>
+<body>
+  <h1>🎹 弹琴记录器</h1>
+  <div class="sub">高音 QWERTYU ｜ 中音 ASDFGHJ ｜ 低音 ZXCVBNM —— 实时记录即兴弹奏</div>
+  <div class="title-row">
+    <span class="hint">曲名：</span>
+    <input type="text" id="titleInput" placeholder="给这段音乐起个名字…" style="width:220px; padding:6px 10px; border:1px solid var(--border); border-radius:8px; background:var(--panel2); color:var(--text); font-size:14px;">
+  </div>
+
+  <div class="panel">
+    <div id="keyboard"></div>
+  </div>
+
+  <div class="panel">
+    <div class="keymap-title">🎛 自定义键位</div>
+    <div class="keymap-row">
+      <span class="row-label">高音</span>
+      <input type="text" id="keymapHigh" value="qwertyu" maxlength="7" class="keymap-input" title="依次输入 7 个键位，对应 1-7">
+      <span class="row-label">中音</span>
+      <input type="text" id="keymapMid" value="asdfghj" maxlength="7" class="keymap-input">
+      <span class="row-label">低音</span>
+      <input type="text" id="keymapLow" value="zxcvbnm" maxlength="7" class="keymap-input">
+      <button class="btn" onclick="applyKeymap()">✓ 应用</button>
+      <button class="btn" onclick="resetKeymap()">↺ 重置</button>
+    </div>
+    <div class="keymap-hint">每行依次输入 7 个字母，对应 1 2 3 4 5 6 7。改完点"应用"。</div>
+  </div>
+
+  <div class="panel">
+    <div class="controls">
+      <button class="btn mode-btn active" data-mode="jianpu" onclick="setMode('jianpu')">简谱</button>
+      <button class="btn mode-btn" data-mode="key" onclick="setMode('key')">按键</button>
+      <span class="hint">｜</span>
+      <button class="btn" onclick="newline()">↩ 换行</button>
+      <button class="btn" onclick="addBar()">| 分隔</button>
+      <button class="btn" onclick="backspace()">⌫ 退格</button>
+      <button class="btn danger" onclick="clearAll()">清空</button>
+      <span class="spacer"></span>
+      <button class="btn play-btn" onclick="playBack()">▶ 播放</button>
+      <span class="hint">从</span>
+      <input type="number" id="startFrom" min="1" value="1" style="width:56px" title="从第几个音符开始播放">
+      <span class="hint">开始</span>
+      <span class="hint">延迟</span>
+      <input type="range" id="delaySlider" min="0.1" max="1.2" step="0.02" value="0.42" oninput="updateDelayLabel()" style="width:110px">
+      <span class="hint" id="delayLabel">0.42s</span>
+      <span class="hint">音色</span>
+      <select id="toneSelect" onchange="setTone(this.value)" style="padding:6px 8px; border:1px solid var(--border); border-radius:8px; background:var(--panel2); color:var(--text); font-size:13px;">
+        <option value="warm">温暖</option>
+        <option value="soft" selected>柔和</option>
+        <option value="bright">明亮</option>
+      </select>
+      <button class="btn sound-btn active" onclick="toggleSound()">🔊 声音</button>
+      <button class="btn" onclick="exportJson()">⬇ 导出</button>
+      <button class="btn" onclick="document.getElementById('importFile').click()">⬆ 导入</button>
+      <input type="file" id="importFile" accept=".json,application/json" style="display:none" onchange="importJson(event)">
+      <button class="btn" onclick="copyText()">📋 复制</button>
+    </div>
+    <div style="margin-top:14px">
+      <div id="score"></div>
+    </div>
+    <div class="edit-panel" id="editPanel" style="display:none; margin-top:14px">
+      <div class="edit-title">✏️ 编辑音符</div>
+      <div class="edit-row">
+        <span class="hint">位置 #<span id="editIndex"></span></span>
+        <span class="hint">音高</span>
+        <input type="text" id="editPitchInput" value="1" style="width:130px" title="八度+音级：-x 低音 / x 中音 / +x 高音，如 -5、3、+1；和弦用逗号如 +1,+3,+5；相对用 +1/-1">
+        <button class="btn" onclick="applyEdit()">✓ 应用</button>
+        <button class="btn" onclick="insertNote()">＋ 在此插入</button>
+        <button class="btn" onclick="insertBar()">| 插分隔</button>
+        <button class="btn" onclick="splitChord()">✂ 拆和弦</button>
+        <button class="btn danger" onclick="deleteEntry()">🗑 删除</button>
+        <button class="btn" onclick="closeEdit()">完成</button>
+      </div>
+      <div class="edit-row" style="margin-top:10px">
+        <span class="hint">添加指定音：</span>
+        <span class="hint">音高</span>
+        <input type="text" id="addPitchInput" value="1" style="width:130px" title="八度+音级：-x 低音 / x 中音 / +x 高音，如 -5、3、+1；和弦用逗号如 +1,+3,+5">
+        <button class="btn" onclick="addNoteAt()">＋ 添加单音</button>
+        <button class="btn" onclick="addChordAt()">＋ 添加和弦</button>
+        <span class="hint">（和弦：音高用逗号分隔，如 +1,+3,+5）</span>
+      </div>
+    </div>
+    <div class="footer">
+      提示：本页需处于焦点状态才能记录。同时按下两个键会记成<span style="color:var(--pink)">和弦</span>（高音在上、上下两行对齐）。
+      键盘 <span class="kbd">Backspace</span> 退格、<span class="kbd">Enter</span> 换行、<span class="kbd">空格</span> 插入 | 分隔。▶ 播放可回放你弹的内容，🔊 弹奏时自动发声。点击谱面音符可修改/插入/删除。
+    </div>
+  </div>
+
+<script>
+  let ROWS = {
+    high: ['q','w','e','r','t','y','u'],
+    mid:  ['a','s','d','f','g','h','j'],
+    low:  ['z','x','c','v','b','n','m'],
+  };
+  const DEFAULT_ROWS = {
+    high: ['q','w','e','r','t','y','u'],
+    mid:  ['a','s','d','f','g','h','j'],
+    low:  ['z','x','c','v','b','n','m'],
+  };
+  const OCT_LABEL = { high: '高音', mid: '中音', low: '低音' };
+  const DEG = ['', '1','2','3','4','5','6','7'];
+
+  // key -> {oct, deg, key}
+  let keyInfo = {};
+  function rebuildKeyInfo() {
+    keyInfo = {};
+    Object.entries(ROWS).forEach(([octName, keys]) => {
+      const oct = octName === 'high' ? 2 : (octName === 'mid' ? 1 : 0);
+      keys.forEach((k, i) => { keyInfo[k] = { oct, deg: i + 1, key: k }; });
+    });
+  }
+  rebuildKeyInfo();
+  // 反向：由 oct + deg 得到对应键位
+  function keyFor(oct, deg) {
+    const octName = oct === 2 ? 'high' : (oct === 1 ? 'mid' : 'low');
+    return ROWS[octName][deg - 1];
+  }
+
+  // ---------- 自定义键位 ----------
+  function applyKeymap() {
+    const get = id => document.getElementById(id).value.toLowerCase().replace(/\s+/g, '').split('');
+    const high = get('keymapHigh');
+    const mid = get('keymapMid');
+    const low = get('keymapLow');
+    // 校验：每行必须正好 7 个字母
+    for (const [name, arr] of [['高音', high], ['中音', mid], ['低音', low]]) {
+      if (arr.length !== 7) { alert(name + ' 需要正好 7 个键位'); return; }
+    }
+    // 校验：21 个键位不能重复
+    const all = [...high, ...mid, ...low];
+    if (new Set(all).size !== 21) { alert('键位不能重复'); return; }
+    ROWS = { high, mid, low };
+    rebuildKeyInfo();
+    buildKeyboard();
+    render();
+    alert('键位已更新！');
+  }
+  function resetKeymap() {
+    document.getElementById('keymapHigh').value = 'qwertyu';
+    document.getElementById('keymapMid').value = 'asdfghj';
+    document.getElementById('keymapLow').value = 'zxcvbnm';
+    ROWS = { high: [...DEFAULT_ROWS.high], mid: [...DEFAULT_ROWS.mid], low: [...DEFAULT_ROWS.low] };
+    rebuildKeyInfo();
+    buildKeyboard();
+    render();
+  }
+
+  let mode = 'jianpu';           // 'jianpu' | 'key'
+  let entries = [];              // {type:'note', notes:[...]} | {type:'nl'}
+  let held = new Set();
+  let currentEntry = null;
+  let lastPressTime = 0;          // 上次按下琴键的时间（用于和弦判定）
+  const CHORD_WINDOW = 80;        // 和弦判定窗口（毫秒）：两键按下间隔在此内才算和弦
+
+  // ---------- 声音 ----------
+  let audioCtx = null;
+  let soundOn = true;
+  let currentTone = 'soft';   // 当前音色：warm / soft / bright
+
+  // 音色预设：控制泛音、亮度、衰减
+  const TONES = {
+    warm:   { harmonics: [[1,1.0],[2,0.20],[3,0.08],[4,0.04]],   filter: 5, decay: 1.9, attack: 0.012 },
+    soft:   { harmonics: [[1,1.0],[2,0.28],[3,0.13],[4,0.06],[5,0.03],[6,0.02]], filter: 1, decay: 1.8, attack: 0.008 },
+    bright: { harmonics: [[1,1.0],[2,0.35],[3,0.18],[4,0.10],[5,0.06]],          filter: 12, decay: 1.5, attack: 0.006 },
+  };
+  function setTone(name) {
+    if (TONES[name]) currentTone = name;
+  }
+  const baseFreq = 261.63; // 中音 do = C4
+  // 每个八度/音级的频率（相对中音 do 的倍率）
+  function freqOf(n) {
+    // 中音 1(do) = C4。八度差：high +1，low -1
+    const octShift = n.oct - 1;             // mid=0, high=+1, low=-1
+    const semis = [0,2,4,5,7,9,11][n.deg - 1]; // 大调音阶相对 do 的半音
+    return baseFreq * Math.pow(2, (octShift * 12 + semis) / 12);
+  }
+  function ensureAudio() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+  function toggleSound() {
+    soundOn = !soundOn;
+    document.querySelector('.sound-btn').classList.toggle('active', soundOn);
+    if (soundOn) ensureAudio();   // 用户手势内解锁音频
+  }
+
+  // ---------- 回放 ----------
+  let playbackTimers = [];
+  function updateDelayLabel() {
+    document.getElementById('delayLabel').textContent =
+      parseFloat(document.getElementById('delaySlider').value).toFixed(2) + 's';
+  }
+  function playBack() {
+    if (!soundOn) { alert('请先开启声音（点一下 🔊 声音 按钮）'); return; }
+    ensureAudio();
+    // 清除之前的回放
+    playbackTimers.forEach(clearTimeout);
+    playbackTimers = [];
+    const noteEntries = entries.filter(e => e.type === 'note');
+    if (noteEntries.length === 0) { alert('还没有记录的音符'); return; }
+    const beat = parseFloat(document.getElementById('delaySlider').value);   // 每个音符间隔（秒）
+    // 起始位置：优先从编辑选中的音符处开始
+    let startEntry = null;
+    if (editEntry && editEntry.type === 'note') {
+      startEntry = editEntry;
+    } else {
+      // 否则用输入框的序号
+      let startVal = parseInt(document.getElementById('startFrom').value, 10);
+      if (isNaN(startVal) || startVal < 1) startVal = 1;
+      if (startVal > noteEntries.length) startVal = noteEntries.length;
+      startEntry = noteEntries[startVal - 1];
+    }
+    // 从起始音符开始，按顺序遍历所有 entry（含 | 和换行）
+    const startIdx = entries.indexOf(startEntry);
+    const playList = entries.slice(startIdx);
+    let t = 0;
+    playList.forEach(e => {
+      if (e.type === 'bar') {
+        t += beat * 1.5;   // | 分隔处停顿 1.5 倍
+        return;
+      }
+      if (e.type === 'nl') {
+        t += beat * 1.5;   // 换行处停顿 1.5 倍
+        return;
+      }
+      e.notes.forEach(n => {
+        const timer = setTimeout(() => {
+          playNote(n);
+          // 播放指示：高亮当前音符
+          document.querySelectorAll('.entry.playing').forEach(el => el.classList.remove('playing'));
+          if (e._el) e._el.classList.add('playing');
+        }, t * 1000);
+        playbackTimers.push(timer);
+      });
+      t += beat;
+    });
+    // 播放结束提示
+    const endTimer = setTimeout(() => {
+      const btn = document.querySelector('.play-btn');
+      btn.textContent = '▶ 播放';
+      btn.onclick = playBack;
+      document.querySelectorAll('.entry.playing').forEach(el => el.classList.remove('playing'));
+    }, t * 1000 + 500);
+    playbackTimers.push(endTimer);
+    const btn = document.querySelector('.play-btn');
+    btn.textContent = '⏹ 停止';
+    btn.onclick = stopPlayback;
+  }
+  function stopPlayback() {
+    playbackTimers.forEach(clearTimeout);
+    playbackTimers = [];
+    const btn = document.querySelector('.play-btn');
+    btn.textContent = '▶ 播放';
+    btn.onclick = playBack;
+    document.querySelectorAll('.entry.playing').forEach(el => el.classList.remove('playing'));
+  }
+  function playNote(n) {
+    if (!soundOn) return;
+    const ctx = ensureAudio();
+    const t = ctx.currentTime;
+    const f = freqOf(n);
+    const tone = TONES[currentTone] || TONES.soft;
+    // 音越高，衰减越快（高音更短促明亮）
+    const bright = 1 + (n.oct - 1) * 0.10;
+    const master = ctx.createGain();
+    master.gain.value = 1;
+    // 主包络：快速起音 → 快速衰减 → 慢速拖尾（悦耳的衰减曲线）
+    master.gain.setValueAtTime(0.0001, t);
+    master.gain.exponentialRampToValueAtTime(0.75, t + tone.attack);
+    master.gain.exponentialRampToValueAtTime(0.32, t + 0.18 * bright);
+    master.gain.exponentialRampToValueAtTime(0.0001, t + tone.decay * bright);
+    // 低通滤波：软化高频，保持通透
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = Math.min(12000, f * tone.filter);
+    filter.Q.value = 0.3;
+    tone.harmonics.forEach(h => {
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = f * h[0];
+      // 每个泛音独立包络：高频泛音衰减更快（更自然）
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(h[1] * 0.7, t + tone.attack);
+      g.gain.exponentialRampToValueAtTime(h[1] * 0.0001, t + (tone.decay - h[0] * 0.2) * bright);
+      osc.connect(g);
+      g.connect(filter);
+      osc.start(t);
+      osc.stop(t + 2.0);
+    });
+    filter.connect(master);
+    master.connect(ctx.destination);
+  }
+
+  // 构建一个音符单元格：八度点精确叠在数字正上方/正下方（仅简谱模式）
+  function makeNoteCell(n) {
+    const cell = document.createElement('div');
+    cell.className = 'note-cell ' + (n.oct === 2 ? 'high' : n.oct === 0 ? 'low' : 'mid');
+    const top = document.createElement('div');
+    top.className = 'oct-dot';
+    top.textContent = (mode === 'jianpu' && n.oct === 2) ? '•' : '';
+    const num = document.createElement('div');
+    num.className = 'num';
+    num.textContent = mode === 'key' ? n.key.toUpperCase() : DEG[n.deg];
+    const bot = document.createElement('div');
+    bot.className = 'oct-dot';
+    bot.textContent = (mode === 'jianpu' && n.oct === 0) ? '•' : '';
+    cell.appendChild(top);
+    cell.appendChild(num);
+    cell.appendChild(bot);
+    return cell;
+  }
+
+  function buildKeyboard() {
+    const kb = document.getElementById('keyboard');
+    kb.innerHTML = '';
+    Object.entries(ROWS).forEach(([octName, keys]) => {
+      const row = document.createElement('div');
+      row.className = 'row';
+      const lbl = document.createElement('div');
+      lbl.className = 'row-label';
+      lbl.textContent = OCT_LABEL[octName];
+      row.appendChild(lbl);
+      keys.forEach(k => {
+        const el = document.createElement('div');
+        el.className = 'key ' + octName;
+        el.dataset.key = k;
+        el.innerHTML = '<div class="note-label"></div><div class="key-label">' + k.toUpperCase() + '</div>';
+        el.addEventListener('mousedown', e => { e.preventDefault(); pressKey(k); });
+        el.addEventListener('mouseup', () => releaseKey(k));
+        el.addEventListener('mouseleave', () => releaseKey(k));
+        row.appendChild(el);
+      });
+      kb.appendChild(row);
+    });
+  }
+
+  function pressKey(k) {
+    if (held.has(k)) return;
+    if (editEntry) return;   // 编辑模式下禁用弹琴输入
+    const now = performance.now();
+    // 和弦判定：仅当有键按住，且距上次按下在窗口内，才算和弦
+    const chord = held.size > 0 && (now - lastPressTime) <= CHORD_WINDOW;
+    lastPressTime = now;
+    held.add(k);
+    const n = keyInfo[k];
+    playNote(n);   // 播放声音
+    if (chord && currentEntry && currentEntry.type === 'note') {
+      currentEntry.notes.push(n);
+      // 高音放上面：按八度从高到低排序
+      currentEntry.notes.sort((a, b) => b.oct - a.oct);
+    } else {
+      currentEntry = { type: 'note', notes: [n] };
+      entries.push(currentEntry);
+    }
+    updateHighlight();
+    render();
+  }
+
+  function releaseKey(k) {
+    held.delete(k);
+    if (held.size === 0) currentEntry = null;
+    updateHighlight();
+  }
+
+  function updateHighlight() {
+    document.querySelectorAll('.key').forEach(el => {
+      el.classList.toggle('pressed', held.has(el.dataset.key));
+    });
+  }
+
+  function newline() {
+    entries.push({ type: 'nl' });
+    currentEntry = null;
+    render();
+  }
+
+  function addBar() {
+    entries.push({ type: 'bar' });
+    currentEntry = null;
+    render();
+  }
+
+  function backspace() {
+    if (entries.length === 0) return;
+    entries.pop();
+    currentEntry = null;
+    render();
+  }
+
+  function clearAll() {
+    entries = [];
+    currentEntry = null;
+    closeEdit();
+    render();
+  }
+
+  // ---------- 编辑音符 ----------
+  let editEntry = null;
+  // 解析音高字符串为 {oct, deg}。格式：-x 低音 / x 中音 / +x 高音
+  // 例如 -5 -> 低音5；3 -> 中音3；+1 -> 高音1
+  function parsePitch(s) {
+    s = s.trim();
+    const m = s.match(/^([+-]?)(\d+)$/);
+    if (!m) return null;
+    const sign = m[1];
+    const deg = parseInt(m[2], 10);
+    if (deg < 1 || deg > 7) return null;
+    let oct = 1;
+    if (sign === '-') oct = 0;
+    else if (sign === '+') oct = 2;
+    return { oct, deg };
+  }
+  // 把音符转成音高字符串（供输入框显示）
+  function pitchStr(n) {
+    const sign = n.oct === 2 ? '+' : (n.oct === 0 ? '-' : '');
+    return sign + n.deg;
+  }
+  function selectEntry(e) {
+    if (e.type !== 'note') return;
+    editEntry = e;
+    document.querySelectorAll('.entry').forEach(el => el.classList.remove('editing'));
+    // 高亮当前（直接用渲染时存的元素引用，避免索引偏差）
+    if (e._el) e._el.classList.add('editing');
+    const idx = entries.indexOf(e);
+    document.getElementById('editPanel').style.display = 'block';
+    document.getElementById('editIndex').textContent = idx + 1;
+    // 填入当前音高，方便直接输入修改（和弦填成逗号分隔）
+    document.getElementById('editPitchInput').value = e.notes.map(n => pitchStr(n)).join(',');
+  }
+  function applyEdit() {
+    if (!editEntry) return;
+    const raw = document.getElementById('editPitchInput').value.trim();
+    const parts = raw.split(',').map(s => s.trim());
+    if (parts.some(s => s === '')) { alert('请输入有效的音高'); return; }
+    // 全部按绝对音高解析：-x 低音 / x 中音 / +x 高音
+    const parsed = parts.map(parsePitch);
+    if (parsed.some(p => p === null)) {
+      alert('请输入有效的音高（如 -5、3、+1，和弦用逗号分隔）');
+      return;
+    }
+    // 输入几个音高就生成几个音
+    editEntry.notes = parsed.map(p => ({ oct: p.oct, deg: p.deg, key: keyFor(p.oct, p.deg) }));
+    render();
+  }
+  function deleteEntry() {
+    if (!editEntry) return;
+    const idx = entries.indexOf(editEntry);
+    if (idx >= 0) entries.splice(idx, 1);
+    editEntry = null;
+    closeEdit();
+    render();
+  }
+  function insertNote() {
+    if (!editEntry) return;
+    const idx = entries.indexOf(editEntry);
+    // 复制当前选中音的音高作为新音符，插到其后
+    const src = editEntry.notes[0];
+    const newNote = { oct: src.oct, deg: src.deg, key: keyFor(src.oct, src.deg) };
+    entries.splice(idx + 1, 0, { type: 'note', notes: [newNote] });
+    render();
+  }
+  function insertBar() {
+    if (!editEntry) return;
+    const idx = entries.indexOf(editEntry);
+    entries.splice(idx + 1, 0, { type: 'bar' });
+    render();
+  }
+  function splitChord() {
+    if (!editEntry || editEntry.notes.length < 2) {
+      alert('只有和弦（多个音）才能拆分');
+      return;
+    }
+    const idx = entries.indexOf(editEntry);
+    // 把和弦的每个音拆成独立单音，插在原位置
+    const singles = editEntry.notes.map(n => ({ type: 'note', notes: [{ oct: n.oct, deg: n.deg, key: keyFor(n.oct, n.deg) }] }));
+    entries.splice(idx, 1, ...singles);
+    editEntry = null;
+    closeEdit();
+    render();
+  }
+  // 添加指定音：解析音高输入（支持逗号分隔多个），在选中音符后插入
+  function addNoteAt() {
+    const raw = document.getElementById('addPitchInput').value.trim();
+    const p = parsePitch(raw);
+    if (!p) { alert('请输入有效的音高（如 -5、3、+1）'); return; }
+    const newNote = { oct: p.oct, deg: p.deg, key: keyFor(p.oct, p.deg) };
+    if (editEntry) {
+      const idx = entries.indexOf(editEntry);
+      entries.splice(idx + 1, 0, { type: 'note', notes: [newNote] });
+    } else {
+      entries.push({ type: 'note', notes: [newNote] });
+    }
+    render();
+  }
+  // 添加指定和弦：解析逗号分隔的多个音高，在选中音符后插入
+  function addChordAt() {
+    const raw = document.getElementById('addPitchInput').value.trim();
+    const parts = raw.split(',').map(s => s.trim());
+    const parsed = parts.map(parsePitch);
+    if (parts.some(s => s === '') || parsed.some(p => p === null)) {
+      alert('请输入有效的音高（如 +1,+3,+5）');
+      return;
+    }
+    const notes = parsed.map(p => ({ oct: p.oct, deg: p.deg, key: keyFor(p.oct, p.deg) }));
+    const chord = { type: 'note', notes };
+    if (editEntry) {
+      const idx = entries.indexOf(editEntry);
+      entries.splice(idx + 1, 0, chord);
+    } else {
+      entries.push(chord);
+    }
+    render();
+  }
+  function closeEdit() {
+    editEntry = null;
+    document.getElementById('editPanel').style.display = 'none';
+    document.querySelectorAll('.entry').forEach(el => el.classList.remove('editing'));
+  }
+
+  function setMode(m) {
+    mode = m;
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
+    render();
+  }
+
+  function render() {
+    const score = document.getElementById('score');
+    score.className = mode === 'key' ? 'key-mode' : '';
+    score.innerHTML = '';
+    let line = document.createElement('div');
+    line.className = 'score-line';
+    score.appendChild(line);
+    let seg = document.createElement('div');   // 当前段落（在 | 处分段）
+    seg.className = 'score-seg';
+    line.appendChild(seg);
+
+    function flushSeg() {
+      seg = document.createElement('div');
+      seg.className = 'score-seg';
+      line.appendChild(seg);
+    }
+
+    entries.forEach(e => {
+      if (e.type === 'nl') {
+        line = document.createElement('div');
+        line.className = 'score-line';
+        score.appendChild(line);
+        seg = document.createElement('div');
+        seg.className = 'score-seg';
+        line.appendChild(seg);
+        return;
+      }
+      if (e.type === 'bar') {
+        const bar = document.createElement('span');
+        bar.className = 'bar';
+        bar.textContent = '|';
+        line.appendChild(bar);
+        flushSeg();   // 在 | 处分段，后续内容不与此段断开
+        return;
+      }
+      const col = document.createElement('div');
+      col.className = 'entry' + (e.notes.length > 1 ? ' chord' : '');
+      col.title = '点击编辑';
+      col.addEventListener('click', () => selectEntry(e));
+      e.notes.forEach(n => col.appendChild(makeNoteCell(n)));
+      seg.appendChild(col);
+      // 记录每个音符 entry 对应的 DOM，供播放指示用
+      e._el = col;
+    });
+    // 键盘上的音符标注
+    document.querySelectorAll('.key').forEach(el => {
+      const label = el.querySelector('.note-label');
+      label.innerHTML = '';
+      label.appendChild(makeNoteCell(keyInfo[el.dataset.key]));
+    });
+  }
+
+  function exportJson() {
+    const data = {
+      version: 1,
+      title: document.getElementById('titleInput').value,
+      mode: mode,
+      // 导出时不带 key（冗余，导入时会根据 oct/deg 自动生成）
+      entries: entries.map(e =>
+        e.type === 'note'
+          ? { type: 'note', notes: e.notes.map(n => ({ oct: n.oct, deg: n.deg })) }
+          : e
+      )
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const title = document.getElementById('titleInput').value || '弹琴记录';
+    a.download = title + '_' + new Date().toISOString().slice(0, 10) + '.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function importJson(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const data = JSON.parse(reader.result);
+        if (!Array.isArray(data.entries)) throw new Error('格式错误');
+        // 导入时实时生成键位：JSON 里无需 key 字段，根据 oct/deg 自动补全
+        entries = data.entries.map(e => {
+          if (e.type === 'note' && Array.isArray(e.notes)) {
+            e.notes = e.notes.map(n => {
+              const o = Math.min(2, Math.max(0, n.oct));
+              const d = Math.min(7, Math.max(1, n.deg));
+              return { oct: o, deg: d, key: keyFor(o, d) };
+            });
+          }
+          return e;
+        });
+        if (data.mode === 'key' || data.mode === 'jianpu') setMode(data.mode);
+        if (typeof data.title === 'string') document.getElementById('titleInput').value = data.title;
+        currentEntry = null;
+        render();
+        alert('导入成功！');
+      } catch (err) {
+        alert('导入失败：文件格式不正确');
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+  }
+
+  function copyText() {
+    const text = entries.map(e =>
+      e.type === 'nl' ? '\n' : e.type === 'bar' ? '|' : e.notes.map(n =>
+        mode === 'key' ? n.key.toUpperCase() : DEG[n.deg]
+      ).join('')
+    ).join('');
+    const btn = document.querySelector('.controls .btn:last-child');
+    navigator.clipboard.writeText(text).then(() => {
+      const old = btn.textContent;
+      btn.textContent = '✓ 已复制';
+      setTimeout(() => btn.textContent = old, 1200);
+    }).catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    });
+  }
+
+  // 物理键盘
+  document.addEventListener('keydown', e => {
+    if (e.repeat) return;
+    // 焦点在输入控件（输入框/滑块等）时不劫持快捷键
+    const tag = e.target && e.target.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+    const k = e.key.toLowerCase();
+    if (k === 'backspace') { e.preventDefault(); backspace(); return; }
+    if (k === 'enter') { e.preventDefault(); newline(); return; }
+    if (k === ' ') { e.preventDefault(); addBar(); return; }
+    if (editEntry) return;   // 编辑模式下禁用琴键输入
+    if (keyInfo[k]) { e.preventDefault(); pressKey(k); }
+  });
+  document.addEventListener('keyup', e => {
+    const tag = e.target && e.target.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+    const k = e.key.toLowerCase();
+    if (keyInfo[k]) releaseKey(k);
+  });
+
+  buildKeyboard();
+  render();
+</script>
+</body>
+</html>
