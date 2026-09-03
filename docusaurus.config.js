@@ -9,7 +9,7 @@ import { themes as prismThemes } from 'prism-react-renderer';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: '户山兔兔の小家',
+  title: 'Daniel兔兔の小家',
   tagline: '可爱就是正确！',
   favicon: 'img/favicon.ico',
 
@@ -66,6 +66,14 @@ const config = {
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       // giscus 评论功能
+      announcementBar: {
+      id: 'domain_update', // 更换内容时，修改 id 可以让之前关闭的用户重新看到
+      content:
+        '🎉 我们更新了域名为<b>Danieluu.top</b>啦！',
+      backgroundColor: '#f3cdf2',   // 你可以换成喜欢的颜色，这里用 Docusaurus 风格的绿色[citation:12]
+      textColor: '#020000',        // 文字颜色
+      isCloseable: true,           // 是否显示关闭按钮
+    },
       giscus: {
         repo: 'DanielToyama/DanielToyama-homepage',
         repoId: 'R_kgDOLTDI9A',
@@ -77,7 +85,7 @@ const config = {
       // Replace with your project's social card
       image: 'img/rabbit.jpg',
       navbar: {
-        title: '户山兔兔の小家',
+        title: 'Daniel兔兔の小家',
         logo: {
           alt: 'My Site Logo',
           src: 'img/logo.svg',
@@ -134,11 +142,11 @@ const config = {
                 href: 'https://blog.07210700.xyz',
               },
               {
-                label: 'KasumiBot(By 户山兔兔）',
+                label: 'KasumiBot(By Daniel兔兔）',
                 href: 'https://ksmbot.top',
               },
               {
-                label: 'YukieBot(By 户山兔兔）',
+                label: 'YukieBot(By Daniel兔兔）',
                 href: 'https://Yukiebot.top',
               }
             ],

@@ -14,9 +14,11 @@ import RotaenoRat from '@site/src/components/RotaenoRat';
 
 import MilthmReality from '@site/src/components/MilthmReality';
 
+import Spoiler from '@site/src/components/Spoiler';
+
 # 关于兔兔
 
-欢迎你的来访！我是户山兔兔！音游人/技术爱好者/二次元
+欢迎你的来访！我是Daniel_兔兔/DanielLin/户山兔兔！音游人/技术爱好者/二次元
 
 ## 音游人
 
@@ -74,22 +76,26 @@ Phigros15.81/Orzmic13.278/Malody5Dan/Rotaeno16.545
 
 希望能够保持着对新事物的好奇心和探索吧。
 
+## 鸣潮批<Spoiler tooltip="啊啊啊啊啊啊酷狗！！！">酷狗</Spoiler>
+
+以前刚开服的时候除了音游也没啥玩的，下载下来发现居然还有点意思，就一直玩到了现在，也是对我影响很大的游戏了，总之，期待与大家一起，从过去迈向明天~
+
+
 ## 二次元
 
 被网友拉去看番，从此一发不可收拾（x
 
 看过番其实屈指可数，没有什么时间去看（（（
 
-更多的时候是音游的二次元浓度比较高，或者说玩玩ba这样的二游，听动漫的歌曲。
+更多的时候是音游的二次元浓度比较高，或者说玩玩ba<Spoiler tooltip="其实退坑好久了，角色真可爱，可惜游戏一坨">真的还在玩吗</Spoiler>，鸣潮这样的二游，听动漫、V家的歌曲<Spoiler tooltip="awmc">什么叫你扩展v曲主要来自舞萌</Spoiler>。
 
 ### 更多的...
 
 我本身的话，其实也算是乐观外向的人吧(嗯
 
-去到哪里都喜欢和人搭话，被称为“社交恐怖分子”
+去到哪里都喜欢和人搭话，被称为“<Spoiler tooltip="社交恐怖分子">社恐</Spoiler>”
 
 喜欢交朋友，自来熟
 
 这就是兔兔哦，也希望和你成为朋友哦~~
-
 

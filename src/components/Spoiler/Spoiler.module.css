@@ -1,0 +1,73 @@
+/* 外层容器：作为黑块和提示框的定位锚点，保持行内显示 */
+.wrap {
+  position: relative;
+  display: inline-block;
+}
+
+/* 黑块：默认黑底黑字，内容被遮住 */
+.spoiler {
+  display: inline-block;
+  background-color: #000;
+  color: #000;
+  padding: 0 0.35em;
+  border-radius: 4px;
+  user-select: none;
+  cursor: pointer;
+  transition: color 0.12s ease;
+  vertical-align: baseline;
+}
+
+/* 悬停 / 聚焦 / 触屏点按展开时：文字变白 → 黑底白字，内容显现 */
+.spoiler:hover,
+.spoiler:focus-visible,
+.spoiler.revealed {
+  color: var(--spoiler-text, #fff);
+}
+
+.spoiler:active {
+  color: var(--spoiler-text, #fff);
+}
+
+.spoiler:focus-visible {
+  outline: 2px dashed var(--spoiler-text, #fff);
+  outline-offset: 2px;
+}
+
+/* ---------- Windows 式小提示框 ----------
+   锚定在黑块旁边（默认显示在下方），不跟随鼠标，
+   像 Windows 控件的原生 tooltip 一样。 */
+.tooltip {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 8px);   /* 显示在黑块下方 */
+  transform: translateX(-50%) translateY(-4px);
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 50;
+  max-width: 260px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: #fff;
+  color: #000;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  font-size: 12px;
+  line-height: 1.5;
+  /* 通过 opacity + visibility 控制显隐，保证过渡动画 */
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.13s ease, transform 0.13s ease;
+}
+
+.tooltipVisible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* 深色模式下提示框 */
+[data-theme='dark'] .tooltip {
+  background: #2b2b2b;
+  color: #eee;
+  border-color: #000;
+}
