@@ -10,13 +10,21 @@ div#index-page-container {
 
 div#index-page-bg {
     position: absolute;
-    background-image: url('https://patchwiki.biligame.com/images/bangdream/5/5b/9eyud0atxb21umz3oyh8j235me9h3wz.png');
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: cover;
     width: 100%;
     height: var(--index-page-container-height);
     z-index: -10;
+    overflow: hidden;
+}
+
+div#index-page-bg img#index-page-bg-img {
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
 }
 
 div#index-page-bg-mask {
