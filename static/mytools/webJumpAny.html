@@ -1,105 +1,692 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>网址跳转测试</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #fff5f8;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .container {
-            text-align: center;
-            background-color: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(255, 153, 184, 0.3);
-            max-width: 500px;
-            width: 90%;
-        }
-        h1 {
-            color: #ff99b8;
-            margin-bottom: 20px;
-        }
-        .input-group {
-            display: flex;
-            margin-bottom: 20px;
-        }
-        input {
-            flex: 1;
-            padding: 12px;
-            border: 2px solid #ff99b8;
-            border-radius: 8px 0 0 8px;
-            font-size: 16px;
-            outline: none;
-        }
-        button {
-            background-color: #ff99b8;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 0 8px 8px 0;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            transition: background-color 0.3s;
-        }
-        button:hover {
-            background-color: #ff7ba9;
-        }
-        .instructions {
-            margin-top: 20px;
-            color: #666;
-            font-size: 14px;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WebView 跳转 / 诊断台</title>
+<style>
+    :root { --pink: #ff99b8; --pink-deep: #ff7ba9; --ink: #333; }
+    * { box-sizing: border-box; }
+    body {
+        margin: 0;
+        padding: 16px;
+        font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+        background-color: #fff5f8;
+        color: var(--ink);
+        -webkit-text-size-adjust: 100%;
+    }
+    .wrap { max-width: 760px; margin: 0 auto; }
+    h1 { color: var(--pink); font-size: 20px; margin: 4px 0 14px; }
+    h2 { font-size: 15px; color: #c2557f; margin: 0 0 10px; }
+    .card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(255, 153, 184, 0.3);
+        padding: 16px;
+        margin-bottom: 14px;
+    }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
+    .row:last-child { margin-bottom: 0; }
+    input[type=text], select, textarea {
+        flex: 1 1 200px;
+        min-width: 0;
+        padding: 10px;
+        border: 2px solid var(--pink);
+        border-radius: 8px;
+        font-size: 15px;
+        outline: none;
+        font-family: inherit;
+        background: #fff;
+        color: var(--ink);
+    }
+    textarea { flex: 1 1 100%; width: 100%; min-height: 60px; font-family: ui-monospace, Consolas, monospace; font-size: 13px; }
+    select { flex: 0 0 auto; }
+    button {
+        background-color: var(--pink);
+        color: #fff;
+        border: none;
+        padding: 10px 14px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 15px;
+        font-weight: bold;
+        transition: background-color 0.2s;
+    }
+    button:hover { background-color: var(--pink-deep); }
+    button.ghost { background: #fff; color: var(--pink); border: 2px solid var(--pink); }
+    button.ghost:hover { background: #fff0f5; color: var(--pink-deep); }
+    .hint { color: #777; font-size: 12px; line-height: 1.7; margin: 8px 0 0; }
+    .status { font-size: 13px; color: #c2557f; min-height: 18px; margin: 8px 0 0; }
+    pre {
+        background: #1f1f23;
+        color: #e8e8ea;
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        line-height: 1.55;
+        overflow: auto;
+        max-height: 60vh;
+        white-space: pre-wrap;
+        word-break: break-all;
+        margin: 0;
+        font-family: ui-monospace, Consolas, monospace;
+    }
+    details { margin-top: 10px; }
+    summary { font-size: 13px; color: #c2557f; cursor: pointer; margin-bottom: 8px; }
+    label.chk { font-size: 13px; display: inline-flex; align-items: center; gap: 5px; }
+    code { background: #fff0f5; padding: 1px 4px; border-radius: 4px; font-size: 12px; }
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>网址跳转测试</h1>
-        <div class="input-group">
+<div class="wrap">
+    <h1>WebView 跳转 / 诊断台</h1>
+
+    <div class="card">
+        <h2>跳转</h2>
+        <div class="row">
             <input type="text" id="urlInput" placeholder="请输入完整的网址 (例如: https://www.example.com)">
-            <button onclick="redirectToUrl()">跳转</button>
         </div>
-        <p class="instructions">用于测试没有URL输入控件的程序内置浏览器</p>
+        <div class="row">
+            <button id="btnGo">跳转</button>
+            <button class="ghost" id="btnGoTop">顶层跳转</button>
+        </div>
+        <p class="hint">
+            用于测试没有 URL 输入控件的程序内置浏览器。「顶层跳转」会跳整个窗口而不是当前 iframe，在文档页的 iframe 里打开本工具时用得上。
+        </p>
+        <div class="status" id="jumpStatus"></div>
     </div>
 
-    <script>
-        function redirectToUrl() {
-            const urlInput = document.getElementById('urlInput').value.trim();
-            
-            if (!urlInput) {
-                alert('请输入网址');
-                return;
-            }
-            
-// 检查是否包含协议头，如果没有则添加https://
-let fullUrl = urlInput;
-if (!/^[a-zA-Z]+:\/\//.test(urlInput)) {
-    fullUrl = 'https://' + urlInput;
-}
-            
-            // 验证URL格式
+    <div class="card">
+        <h2>WebView 诊断（JSBridge 枚举）</h2>
+        <div class="row">
+            <button id="btnDiag">开始诊断</button>
+            <button class="ghost" id="btnEruda">加载 eruda</button>
+            <button class="ghost" id="btnCopy">复制报告</button>
+        </div>
+        <p class="hint">
+            目的是找出 App 往页面里注入的原生对象（JSBridge）。如果里面有发 HTTP 请求或取 token / cookie 的能力，就能绕过 CORS 和 SameSite 直接用 App 的登录态调它的自家接口。诊断只读属性、不调用任何方法。
+        </p>
+        <div class="status" id="diagStatus"></div>
+        <div style="margin-top:12px"><pre id="report">点「开始诊断」生成报告。</pre></div>
+        <details>
+            <summary>完整 window 属性列表（找漏网的名字用）</summary>
+            <pre id="allProps">（诊断后显示）</pre>
+        </details>
+        <details>
+            <summary>原始 JSON（复制给别人看）</summary>
+            <pre id="rawJson">（诊断后显示）</pre>
+        </details>
+    </div>
+
+    <div class="card">
+        <h2>直连测试</h2>
+        <div class="row">
+            <input type="text" id="apiUrl" placeholder="要测试的接口地址 (例如: https://api.example.com/v1/me)">
+        </div>
+        <div class="row">
+            <select id="apiMethod">
+                <option>GET</option>
+                <option>POST</option>
+                <option>PUT</option>
+                <option>DELETE</option>
+                <option>HEAD</option>
+            </select>
+            <label class="chk"><input type="checkbox" id="apiCreds" checked> 发送 Cookie (credentials: include)</label>
+            <button id="btnSend">发送</button>
+        </div>
+        <div class="row">
+            <textarea id="apiBody" placeholder="请求体（GET/HEAD 会忽略，其它方法默认按 JSON 发送）"></textarea>
+        </div>
+        <p class="hint">
+            先走 CORS 读取模式，失败时自动补一次 <code>no-cors</code> 探测来区分「网络没通」和「CORS 不放行」。注意：本页 origin 与目标不同源时，即便带上 Cookie 也会被 SameSite 拦掉——这里的结果本身就是证据。
+        </p>
+        <div style="margin-top:12px"><pre id="apiOut">（未发送）</pre></div>
+    </div>
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    /* ==================== 小工具 ==================== */
+
+    function safe(fn, fallback) {
+        try {
+            var v = fn();
+            return (typeof v === 'undefined') ? fallback : v;
+        } catch (e) {
+            return (fallback !== undefined && fallback !== null) ? fallback : '<抛错: ' + ((e && e.message) || e) + '>';
+        }
+    }
+
+    function getOwnNames(obj) {
+        if (obj === null || typeof obj === 'undefined') return [];
+        try {
+            return Object.getOwnPropertyNames(obj);
+        } catch (e) {
+            var out = [];
+            try { for (var k in obj) out.push(k); } catch (e2) { /* 完全不可枚举 */ }
+            return out;
+        }
+    }
+
+    function setText(id, text) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = text;
+    }
+
+    function setStatus(id, text) {
+        setText(id, text);
+    }
+
+    /* 名字层面像 bridge 的特征。故意收窄：单下划线开头的内部属性太多噪音，
+       不放进特征命中，只留在「完整 window 属性列表」里供人工翻。 */
+    var BRIDGE_PATTERN = /bridge|jsb|android|native|hybrid|dsb|messagehandler|__\w+__/i;
+
+    /* 我们自己往主文档里插基线 iframe 会让主窗口多出数字索引属性（window[0] 之类），
+       必须排除，否则 diff 里会凭空出现假命中。 */
+    var FRAME_INDEX_PATTERN = /^\d+$/;
+
+    /* 精确探测：点号路径，逐段 try/catch */
+    var PROBE_PATHS = [
+        'android', 'Android', 'ANDROID',
+        'JSBridge', 'jsBridge', 'jsbridge', 'JsBridge', 'jsb', 'JSB',
+        'Bridge', 'bridge', '__bridge__', '__jsbridge__',
+        'nativeBridge', 'NativeBridge', 'hybrid', 'Hybrid',
+        'dsBridge', 'DsBridge', 'dsbridge',
+        'webview', 'WebView', 'WebviewBridge',
+        'app', 'App', 'client', 'Client', 'sdk', 'SDK',
+        'gameClient', 'GameClient', 'game', 'Game',
+        'myBridge', 'appBridge', 'appbridge', 'webBridge',
+        'external', 'external.notify',
+        'webkit', 'webkit.messageHandlers',
+        'chrome', 'chrome.webview', 'chrome.runtime',
+        'cefQuery', 'cef', 'cefSharp', 'CefSharp',
+        'electron', 'electronAPI', '__TAURI__', '__TAURI_INTERNALS__', 'ReactNativeWebView',
+        'WeixinJSBridge', 'AlipayJSBridge', 'ttJSCallBack', 'myJSCallback',
+        'ucweb', 'ucapi', '__wxjs_environment'
+    ];
+
+    function getPath(path) {
+        var parts = path.split('.');
+        var cur = window;
+        for (var i = 0; i < parts.length; i++) {
+            if (cur === null || typeof cur === 'undefined') return undefined;
             try {
-                new URL(fullUrl);
-                window.location.href = fullUrl;
+                cur = cur[parts[i]];
             } catch (e) {
-                alert('请输入有效的网址格式 (例如: example.com 或 https://example.com)');
+                return '<读属性抛错: ' + ((e && e.message) || e) + '>';
             }
         }
-        
-        // 允许按Enter键触发跳转
-        document.getElementById('urlInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                redirectToUrl();
+        return cur;
+    }
+
+    /* 只读枚举一个对象的成员，不调用任何东西 */
+    function describeMembers(obj, max) {
+        max = max || 40;
+        var names = getOwnNames(obj);
+        var lines = [];
+        for (var i = 0; i < names.length && i < max; i++) {
+            var k = names[i];
+            var v = safe(function () { return obj[k]; }, '<读属性抛错>');
+            var t = typeof v;
+            if (t === 'function') {
+                var argc = safe(function () { return v.length; }, '?');
+                lines.push('      ' + k + '()  // 形参 ' + argc + ' 个');
+            } else if (v !== null && t === 'object') {
+                lines.push('      ' + k + ' : object{' + getOwnNames(v).slice(0, 10).join(', ') + '}');
+            } else if (t === 'undefined') {
+                lines.push('      ' + k + ' : undefined');
+            } else {
+                lines.push('      ' + k + ' : ' + t + ' = ' + String(v).slice(0, 80));
+            }
+        }
+        if (names.length > max) lines.push('      …（共 ' + names.length + ' 项，已截断）');
+        return { count: names.length, lines: lines };
+    }
+
+    function snapshotWindow(win) {
+        var info = { keys: [], patternHits: [], objects: {} };
+        info.keys = getOwnNames(win);
+        var set = {};
+        info.keys.forEach(function (k) { set[k] = 1; });
+
+        info.keys.forEach(function (k) {
+            if (!BRIDGE_PATTERN.test(k)) return;
+            var v = safe(function () { return win[k]; }, undefined);
+            info.patternHits.push(k);
+            if (v !== null && (typeof v === 'object' || typeof v === 'function')) {
+                info.objects[k] = { type: typeof v, ctor: safe(function () { return v.constructor && v.constructor.name; }, '') };
             }
         });
-    </script>
+        info.set = set;
+        return info;
+    }
+
+    /* ==================== 诊断主流程 ==================== */
+
+    function collectEnv() {
+        var ua = navigator.userAgent;
+        var env = {};
+        env['页面地址'] = location.href;
+        env['本页 origin'] = location.origin;
+        env['referrer'] = document.referrer || '(空)';
+        env['User-Agent'] = ua;
+        env['platform'] = safe(function () { return navigator.platform || '(空)'; }, '(空)');
+        env['语言'] = safe(function () { return navigator.language || '(空)'; }, '(空)');
+        env['cookieEnabled'] = safe(function () { return navigator.cookieEnabled; }, '(未知)');
+        env['安全上下文'] = safe(function () { return window.isSecureContext; }, '(未知)');
+        env['UA-CH brands'] = safe(function () {
+            return navigator.userAgentData && navigator.userAgentData.brands
+                ? navigator.userAgentData.brands.map(function (b) { return b.brand + ' ' + b.version; }).join(', ')
+                : '(无)';
+        }, '(无)');
+        env['是否在 iframe 中'] = (window.top !== window.self);
+        env['顶层 origin'] = safe(function () { return window.top.location.origin; }, '跨域不可读');
+        env['屏幕'] = screen.width + 'x' + screen.height + ' @' + (window.devicePixelRatio || 1) + 'x';
+        env['视口'] = window.innerWidth + 'x' + window.innerHeight;
+        env['本页可见 cookie'] = safe(function () { return document.cookie || '(本页 origin 下没有可见 cookie)'; }, '(读取抛错)');
+        env['存储'] = safe(function () {
+            return 'localStorage ' + localStorage.length + ' 项 / sessionStorage ' + sessionStorage.length + ' 项';
+        }, '(不可用)');
+        env['eruda'] = safe(function () { return window.eruda ? '已存在' : '未加载'; }, '(未知)');
+
+        var flags = [];
+        if (/; wv\)/i.test(ua)) flags.push('Android WebView（UA 带 "; wv"）');
+        if (/XWEB|Crosswalk|TBS|MQQBrowser/i.test(ua)) flags.push('腾讯 X5 / TBS 内核');
+        if (/iPhone|iPad|iPod/i.test(ua)) flags.push('iOS WKWebView / UIWebView');
+        if (/Windows NT|Macintosh/i.test(ua)) flags.push('桌面 UA（可能是 CEF / Electron / WebView2）');
+        env['UA 特征'] = flags.length ? flags.join('、') : '(无特征命中)';
+        return env;
+    }
+
+    function collectInjections() {
+        var result = { diff: [], diffDetails: {}, probes: [], notes: [] };
+
+        /* 用同源空白 iframe 做基线：标准全局在两边都存在，被 diff 掉。
+           注意 addJavascriptInterface 是 WebView 级注入，可能对子 frame 一样生效，
+           那样 diff 会为空——下面会显式报告这种情况。 */
+        var blank = null;
+        var blankInfo = null;
+        try {
+            blank = document.createElement('iframe');
+            blank.setAttribute('style', 'display:none');
+            document.body.appendChild(blank);
+            blankInfo = snapshotWindow(blank.contentWindow);
+        } catch (e) {
+            result.notes.push('空白 iframe 基线创建失败：' + ((e && e.message) || e) + '（diff 结果不可信）');
+        }
+
+        var mainInfo = snapshotWindow(window);
+
+        if (blankInfo && !blankInfo.keys.length) {
+            result.notes.push('空白 iframe 的 window 取不到（可能被 WebView 限制）→ diff 结果不可信，只看第三、四节。');
+        }
+
+        if (blankInfo && blankInfo.keys.length) {
+            mainInfo.keys.forEach(function (k) {
+                if (blankInfo.set[k]) return;
+                if (FRAME_INDEX_PATTERN.test(k)) return;
+                result.diff.push(k);
+                var v = safe(function () { return window[k]; }, undefined);
+                if (v !== null && (typeof v === 'object' || typeof v === 'function')) {
+                    result.diffDetails[k] = { type: typeof v, members: describeMembers(v) };
+                } else {
+                    result.diffDetails[k] = { type: typeof v, members: null };
+                }
+            });
+
+            if (result.diff.length === 0) {
+                result.notes.push('主 frame 与空白 iframe 的全局属性一致 → 没有"仅主 frame"的注入。若 App 用的是 addJavascriptInterface，它对整个 WebView 生效，diff 方式看不到，请直接看下面的「名字特征命中」。');
+            }
+            if (blankInfo.patternHits.length) {
+                result.notes.push('空白 iframe 上也命中了特征名：' + blankInfo.patternHits.join(', ') + ' → 基本可以确认是 WebView 级注入（全 frame 生效）。');
+            }
+        }
+
+        /* 名字特征命中：不管注入范围都能捞到 */
+        mainInfo.patternHits.forEach(function (k) {
+            var v = safe(function () { return window[k]; }, undefined);
+            var entry = {
+                name: k,
+                type: typeof v,
+                alsoInBlankFrame: blankInfo ? !!blankInfo.set[k] : null,
+                members: null
+            };
+            if (v !== null && (typeof v === 'object' || typeof v === 'function')) {
+                entry.ctor = safe(function () { return v.constructor && v.constructor.name; }, '');
+                entry.members = describeMembers(v);
+            } else {
+                entry.value = String(v).slice(0, 100);
+            }
+            result.probes.push(entry);
+        });
+
+        /* 精确点号路径探测 */
+        result.paths = [];
+        PROBE_PATHS.forEach(function (p) {
+            var v = getPath(p);
+            if (typeof v === 'undefined') return;
+            var entry = { path: p, type: typeof v };
+            if (typeof v === 'string') entry.value = v.slice(0, 100);
+            if (v !== null && (typeof v === 'object' || typeof v === 'function')) {
+                entry.ctor = safe(function () { return v.constructor && v.constructor.name; }, '');
+                entry.members = describeMembers(v, 30);
+            }
+            result.paths.push(entry);
+        });
+
+        result.allWindowKeys = mainInfo.keys;
+        result.allPatternHits = mainInfo.patternHits;
+        return result;
+    }
+
+    var LAST_REPORT_TEXT = '';
+    var LAST_REPORT_JSON = null;
+
+    function runDiagnostics() {
+        setStatus('diagStatus', '正在诊断…');
+        var report = { 时间: new Date().toISOString() };
+
+        report.env = collectEnv();
+
+        var inj;
+        try {
+            inj = collectInjections();
+        } catch (e) {
+            setStatus('diagStatus', '诊断出错：' + ((e && e.message) || e));
+            return;
+        }
+
+        report.injections = inj;
+        LAST_REPORT_JSON = report;
+
+        var L = [];
+        L.push('========== 一、环境 ==========');
+        Object.keys(report.env).forEach(function (k) {
+            L.push(k + ': ' + report.env[k]);
+        });
+        L.push('');
+
+        L.push('========== 二、仅主 frame 存在的全局（次要，可能有引擎差异噪音）==========');
+        if (!inj.diff.length) {
+            L.push('(无)');
+        } else {
+            inj.diff.forEach(function (k) {
+                var d = inj.diffDetails[k];
+                L.push('  • ' + k + ' : ' + d.type);
+                if (d.members && d.members.lines.length) {
+                    d.members.lines.forEach(function (line) { L.push(line); });
+                }
+            });
+        }
+        L.push('');
+
+        L.push('========== 三、名字像 bridge 的全局（重点看这里）==========');
+        if (!inj.probes.length) {
+            L.push('(无)');
+        } else {
+            inj.probes.forEach(function (e) {
+                L.push('  ★ ' + e.name
+                    + '  type=' + e.type
+                    + (e.ctor ? '  ctor=' + e.ctor : '')
+                    + (e.members ? '  成员数=' + e.members.count : '')
+                    + (e.alsoInBlankFrame === null ? '' : (e.alsoInBlankFrame ? '  [全 frame 注入]' : '  [仅主 frame]')));
+                if (e.members) e.members.lines.forEach(function (line) { L.push(line); });
+                if (e.value !== undefined) L.push('      = ' + e.value);
+            });
+        }
+        L.push('');
+
+        L.push('========== 四、常见 JSBridge 名精确探测 ==========');
+        if (!inj.paths.length) {
+            L.push('(全部未命中)');
+        } else {
+            inj.paths.forEach(function (e) {
+                L.push('  ✔ ' + e.path + '  type=' + e.type + (e.ctor ? '  ctor=' + e.ctor : ''));
+                if (e.members) e.members.lines.forEach(function (line) { L.push(line); });
+                if (e.value !== undefined) L.push('      = ' + e.value);
+            });
+        }
+        L.push('');
+
+        if (inj.notes.length) {
+            L.push('========== 五、结论提示 ==========');
+            inj.notes.forEach(function (n) { L.push('  - ' + n); });
+            L.push('');
+        }
+
+        L.push('========== 怎么读这份报告 ==========');
+        L.push('  1) 三、四两节里凡是带 () 的成员，都是 App 暴露出来的原生能力。');
+        L.push('  2) 优先找这几类名字：request / http / ajax / fetch / post / get / call / invoke /');
+        L.push('     token / cookie / userInfo / login / sign / header / evaluateJavascript / loadUrl。');
+        L.push('  3) 有原生发 HTTP 的能力 → 直接用它调自家接口，无 CORS、无 SameSite、天然带 App 登录态。');
+        L.push('  4) 有取 token / cookie 的能力 → 导出来在 PC 上打接口。');
+        L.push('  5) 两样都没有 → 只能走 root 路线（LSPosed 强开 WebView 调试 → chrome://inspect）。');
+        L.push('  6) 报告内容只含属性和方法名，不含任何调用结果，可以安全贴给别人看。');
+        L.push('  7) 名字以单个下划线开头的注入不在第三节（避免引擎内部属性刷屏），');
+        L.push('     请在「完整 window 属性列表」里搜 _ 自己翻。');
+
+        LAST_REPORT_TEXT = L.join('\n');
+        setText('report', LAST_REPORT_TEXT);
+        setText('allProps', '共 ' + inj.allWindowKeys.length + ' 项：\n' + inj.allWindowKeys.join('\n'));
+        setText('rawJson', JSON.stringify(report, null, 2));
+
+        var summary = inj.probes.length
+            ? ('诊断完成：发现 ' + inj.probes.length + ' 个特征命中的全局，先看报告第三节。')
+            : (inj.diff.length
+                ? ('诊断完成：没有特征命中的名字，但有 ' + inj.diff.length + ' 个主 frame 独有全局，看报告第二节。')
+                : '诊断完成：没发现可识别注入，看报告里的结论提示。');
+        setStatus('diagStatus', summary);
+    }
+
+    /* ==================== eruda ==================== */
+
+    var ERUDA_SRCS = [
+        '/mytools/eruda.min.js',
+        'https://cdn.jsdelivr.net/npm/eruda',
+        'https://fastly.jsdelivr.net/npm/eruda',
+        'https://unpkg.com/eruda'
+    ];
+
+    function loadScriptSequential(list, idx, done) {
+        if (idx >= list.length) { done(new Error('所有来源都加载失败')); return; }
+        var s = document.createElement('script');
+        s.src = list[idx];
+        s.onload = function () {
+            if (window.eruda) { done(null, list[idx]); } else { loadScriptSequential(list, idx + 1, done); }
+        };
+        s.onerror = function () { loadScriptSequential(list, idx + 1, done); };
+        document.head.appendChild(s);
+    }
+
+    function toggleEruda() {
+        if (window.eruda) {
+            try {
+                if (window.eruda._isInit) {
+                    window.eruda.destroy();
+                    setStatus('diagStatus', 'eruda 已关闭。');
+                } else {
+                    window.eruda.init();
+                    setStatus('diagStatus', 'eruda 已开启（点右下角图标展开）。');
+                }
+            } catch (e) {
+                setStatus('diagStatus', 'eruda 操作失败：' + ((e && e.message) || e));
+            }
+            return;
+        }
+        setStatus('diagStatus', '正在加载 eruda…');
+        loadScriptSequential(ERUDA_SRCS, 0, function (err, from) {
+            if (err) {
+                setStatus('diagStatus', 'eruda 加载失败：' + err.message + '。可以在同级目录放一份 eruda.min.js（命名为 /mytools/eruda.min.js）走本地加载。');
+                return;
+            }
+            try {
+                window.eruda.init();
+                setStatus('diagStatus', 'eruda 已从 ' + from + ' 加载并开启。');
+            } catch (e) {
+                setStatus('diagStatus', 'eruda 初始化失败：' + ((e && e.message) || e));
+            }
+        });
+    }
+
+    /* ==================== 直连测试 ==================== */
+
+    function fmtHeaders(res) {
+        var lines = [];
+        try {
+            res.headers.forEach(function (v, k) { lines.push(k + ': ' + v); });
+        } catch (e) { /* ignore */ }
+        return lines.length ? lines.join('\n    ') : '(无可读响应头——CORS 未放行 expose-headers 或读取被拦)';
+    }
+
+    function sendRequest() {
+        var url = document.getElementById('apiUrl').value.trim();
+        var method = document.getElementById('apiMethod').value;
+        var body = document.getElementById('apiBody').value;
+        var useCreds = document.getElementById('apiCreds').checked;
+        var out = [];
+        var el = document.getElementById('apiOut');
+
+        if (!url) { setText('apiOut', '请先填写接口地址。'); return; }
+        if (!/^[a-zA-Z]+:\/\//.test(url)) url = 'https://' + url;
+
+        out.push('本页 origin: ' + location.origin);
+        out.push('目标: ' + method + ' ' + url);
+        out.push('credentials: ' + (useCreds ? 'include' : 'omit'));
+        out.push('本页可见 cookie: ' + safe(function () { return document.cookie || '(无)'; }, '(读取抛错)'));
+        out.push('');
+
+        var opts = {
+            method: method,
+            credentials: useCreds ? 'include' : 'omit',
+            cache: 'no-store'
+        };
+        if (body && method !== 'GET' && method !== 'HEAD') {
+            opts.body = body;
+            opts.headers = { 'Content-Type': 'application/json' };
+        }
+
+        out.push('---------- CORS 读取模式 ----------');
+        el.textContent = out.join('\n');
+
+        fetch(url, opts).then(function (res) {
+            out.push('HTTP ' + res.status + ' ' + res.statusText + '  type=' + res.type + '  redirected=' + res.redirected);
+            out.push('可见响应头:\n    ' + fmtHeaders(res));
+            return res.text().then(function (text) {
+                out.push('响应体（截断到 4000 字符）:\n' + (text.length > 4000 ? text.slice(0, 4000) + '\n…[已截断]' : text));
+                out.push('');
+                out.push('说明：能读到状态码和响应体 = CORS 放行了本页 origin。');
+                out.push('若状态是 401/403，说明网络和 CORS 都通了，卡在凭证——这时看请求到底带没带 cookie。');
+                el.textContent = out.join('\n');
+            });
+        }).catch(function (err) {
+            out.push('失败: ' + (err && err.name) + ': ' + ((err && err.message) || err));
+            out.push('典型含义：CORS 未放行（缺 Access-Control-Allow-Origin 或不匹配本页 origin）、');
+            out.push('credentials 与 Access-Control-Allow-Credentials 冲突、被 CSP 拦，或网络层就没通。');
+            out.push('下面用 no-cors 探测区分「网络不通」和「CORS 不放行」……');
+            el.textContent = out.join('\n');
+
+            return fetch(url, { method: 'GET', mode: 'no-cors', credentials: useCreds ? 'include' : 'omit', cache: 'no-store' })
+                .then(function (r2) {
+                    out.push('');
+                    out.push('---------- no-cors 探测 ----------');
+                    out.push('请求完成: type=' + r2.type + '  status=' + r2.status + '（opaque 是正常的，no-cors 读不到内容）');
+                    out.push('→ 网络可达、服务端有响应。问题出在 CORS / 凭证策略，不是网络。');
+                    out.push('→ 结论：从这个 origin 直接调这个接口走不通，需要换同源上下文或原生 bridge。');
+                    el.textContent = out.join('\n');
+                })
+                .catch(function (err2) {
+                    out.push('');
+                    out.push('---------- no-cors 探测 ----------');
+                    out.push('也失败: ' + (err2 && err2.name) + ': ' + ((err2 && err2.message) || err2));
+                    out.push('→ 网络层就没通：DNS、连接被拒、混合内容（https 页面请求 http）、被 App 拦截，或域名根本不存在。');
+                    el.textContent = out.join('\n');
+                });
+        });
+    }
+
+    /* ==================== 跳转（保持原有行为）==================== */
+
+    function normalizeUrl(raw) {
+        var v = (raw || '').trim();
+        if (!v) return null;
+        if (!/^[a-zA-Z]+:\/\//.test(v)) v = 'https://' + v;
+        try {
+            new URL(v);
+            return v;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function redirectToUrl() {
+        var full = normalizeUrl(document.getElementById('urlInput').value);
+        if (!full) {
+            setStatus('jumpStatus', '请输入有效的网址格式 (例如: example.com 或 https://example.com)');
+            return;
+        }
+        setStatus('jumpStatus', '跳转中: ' + full);
+        window.location.href = full;
+    }
+
+    function redirectTop() {
+        var full = normalizeUrl(document.getElementById('urlInput').value);
+        if (!full) {
+            setStatus('jumpStatus', '请输入有效的网址格式 (例如: example.com 或 https://example.com)');
+            return;
+        }
+        var w = null;
+        try { w = window.open(full, '_top'); } catch (e) { w = null; }
+        if (!w) {
+            setStatus('jumpStatus', '顶层跳转被拦，改用当前 frame 跳转: ' + full);
+            window.location.href = full;
+        } else {
+            setStatus('jumpStatus', '顶层跳转中: ' + full);
+        }
+    }
+
+    function copyReport() {
+        var text = LAST_REPORT_TEXT || '（还没生成报告）';
+        function fallback() {
+            try {
+                var ta = document.createElement('textarea');
+                ta.value = text;
+                ta.setAttribute('style', 'position:fixed;top:-1000px');
+                document.body.appendChild(ta);
+                ta.select();
+                var ok = document.execCommand('copy');
+                document.body.removeChild(ta);
+                setStatus('diagStatus', ok ? '已复制到剪贴板。' : '复制失败，请手动展开「原始 JSON」抄走。');
+            } catch (e) {
+                setStatus('diagStatus', '复制失败，请手动展开「原始 JSON」抄走。');
+            }
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(function () {
+                setStatus('diagStatus', '已复制到剪贴板。');
+            }, fallback);
+        } else {
+            fallback();
+        }
+    }
+
+    /* ==================== 绑定 ==================== */
+
+    document.getElementById('btnGo').addEventListener('click', redirectToUrl);
+    document.getElementById('btnGoTop').addEventListener('click', redirectTop);
+    document.getElementById('btnDiag').addEventListener('click', runDiagnostics);
+    document.getElementById('btnEruda').addEventListener('click', toggleEruda);
+    document.getElementById('btnCopy').addEventListener('click', copyReport);
+    document.getElementById('btnSend').addEventListener('click', sendRequest);
+
+    document.getElementById('urlInput').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') redirectToUrl();
+    });
+    document.getElementById('apiUrl').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') sendRequest();
+    });
+})();
+</script>
 </body>
 </html>
