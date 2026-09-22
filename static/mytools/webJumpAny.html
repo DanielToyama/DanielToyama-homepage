@@ -55,6 +55,7 @@
     button:hover { background-color: var(--pink-deep); }
     button.ghost { background: #fff; color: var(--pink); border: 2px solid var(--pink); }
     button.ghost:hover { background: #fff0f5; color: var(--pink-deep); }
+    button.small { padding: 6px 10px; font-size: 13px; }
     .hint { color: #777; font-size: 12px; line-height: 1.7; margin: 8px 0 0; }
     .status { font-size: 13px; color: #c2557f; min-height: 18px; margin: 8px 0 0; }
     pre {
@@ -97,6 +98,18 @@
     </div>
 
     <div class="card">
+        <h2>下面这些是干什么的</h2>
+        <p class="hint" style="margin-top:0">
+            在任意 App 的内置浏览器里打开本页，下面的面板会枚举 App 注入到这个页面上的原生对象（JSBridge），
+            列出它们暴露的方法，并允许你直接调用、看返回值。
+            用途：如果 App 的桥里有「发 HTTP 请求」或「取 token / cookie」的能力，
+            就能借原生侧的手去调它自家的接口——不受 CORS 和 SameSite 限制，天然带 App 的登录态。
+            <br><br>
+            与任何具体 App 无关，纯通用工具。诊断部分只读属性、不调用任何方法，报告可以直接外发。
+        </p>
+    </div>
+
+    <div class="card">
         <h2>WebView 诊断（JSBridge 枚举）</h2>
         <div class="row">
             <button id="btnDiag">开始诊断</button>
@@ -116,6 +129,40 @@
             <summary>原始 JSON（复制给别人看）</summary>
             <pre id="rawJson">（诊断后显示）</pre>
         </details>
+    </div>
+
+    <div class="card">
+        <h2>桥调用台（借 App 的原生能力）</h2>
+        <div class="row">
+            <select id="brTarget"></select>
+            <input type="text" id="brTargetCustom" placeholder="自定义全局对象名（填了就优先用它）">
+        </div>
+        <div class="row">
+            <select id="brMethod"></select>
+            <input type="text" id="brMethodCustom" placeholder="自定义方法名（填了就优先用它）">
+        </div>
+        <div class="row">
+            <select id="brMode">
+                <option value="auto">自动（先 callHandler 再直接调用）</option>
+                <option value="callhandler">只按 WVJB callHandler 调</option>
+                <option value="direct">只按普通函数调 (data, cb)</option>
+            </select>
+            <button id="btnBrCall">调用</button>
+            <button class="ghost" id="btnBrRefresh">重新枚举方法</button>
+            <button class="ghost" id="btnBrCopy">复制结果</button>
+        </div>
+        <div class="row">
+            <textarea id="brData" placeholder="传给 handler 的参数，JSON 格式，默认 {}">{}</textarea>
+        </div>
+        <div class="row" id="quickRow"></div>
+        <div class="row">
+            <label class="chk"><input type="checkbox" id="brForce"> 允许调用可能有副作用的 handler（带 ⚠ 的）</label>
+        </div>
+        <p class="hint">
+            点上面的「开始诊断」会把发现的桥对象和方法自动填进下拉框；换目标对象后方法列表会重新枚举。带 ⚠ 的 handler 可能改变 App 状态（登出 / 绑定 / 刷新 token / 分享），默认被拦住。响应里如果出现 token，**不要外发**。
+        </p>
+        <div class="status" id="brStatus"></div>
+        <div style="margin-top:12px"><pre id="brOut">（未调用）</pre></div>
     </div>
 
     <div class="card">
@@ -221,28 +268,62 @@
         return cur;
     }
 
+    /* 枚举成员名。addJavascriptInterface 注入的 Java 对象常常 getOwnPropertyNames 返回空，
+       必须依次退到 for...in 和原型链，否则整张方法表都会漏掉。 */
+    function collectKeys(obj) {
+        var keys = [];
+        getOwnNames(obj).forEach(function (k) { keys.push({ label: k, from: 'own' }); });
+        if (!keys.length) {
+            try {
+                for (var k in obj) keys.push({ label: k, from: 'in' });
+            } catch (e) { /* ignore */ }
+        }
+        if (!keys.length) {
+            try {
+                var proto = Object.getPrototypeOf(obj);
+                if (proto && proto !== Object.prototype) {
+                    getOwnNames(proto).forEach(function (k) {
+                        if (k !== 'constructor') keys.push({ label: k + ' [proto]', from: 'proto', key: k });
+                    });
+                }
+            } catch (e) { /* ignore */ }
+        }
+        return keys;
+    }
+
+    function readKey(obj, entry) {
+        if (entry.from === 'proto') {
+            var proto = Object.getPrototypeOf(obj);
+            return proto[entry.key];
+        }
+        return obj[entry.label];
+    }
+
     /* 只读枚举一个对象的成员，不调用任何东西 */
     function describeMembers(obj, max) {
         max = max || 40;
-        var names = getOwnNames(obj);
+        var keys = collectKeys(obj);
         var lines = [];
-        for (var i = 0; i < names.length && i < max; i++) {
-            var k = names[i];
-            var v = safe(function () { return obj[k]; }, '<读属性抛错>');
+        var names = [];
+        for (var i = 0; i < keys.length && i < max; i++) {
+            var e = keys[i];
+            names.push(e.label);
+            var v = safe(function () { return readKey(obj, e); }, '<读属性抛错>');
             var t = typeof v;
             if (t === 'function') {
                 var argc = safe(function () { return v.length; }, '?');
-                lines.push('      ' + k + '()  // 形参 ' + argc + ' 个');
+                lines.push('      ' + e.label + '()  // 形参 ' + argc + ' 个');
             } else if (v !== null && t === 'object') {
-                lines.push('      ' + k + ' : object{' + getOwnNames(v).slice(0, 10).join(', ') + '}');
+                lines.push('      ' + e.label + ' : object{' + getOwnNames(v).slice(0, 10).join(', ') + '}');
             } else if (t === 'undefined') {
-                lines.push('      ' + k + ' : undefined');
+                lines.push('      ' + e.label + ' : undefined');
             } else {
-                lines.push('      ' + k + ' : ' + t + ' = ' + String(v).slice(0, 80));
+                lines.push('      ' + e.label + ' : ' + t + ' = ' + String(v).slice(0, 80));
             }
         }
-        if (names.length > max) lines.push('      …（共 ' + names.length + ' 项，已截断）');
-        return { count: names.length, lines: lines };
+        if (keys.length > max) lines.push('      …（共 ' + keys.length + ' 项，已截断）');
+        if (!keys.length) lines.push('      (成员完全枚举不到：原生 Java 对象常见，只能靠猜方法名或换注入方式)');
+        return { count: keys.length, names: names, lines: lines };
     }
 
     function snapshotWindow(win) {
@@ -472,6 +553,15 @@
         setText('allProps', '共 ' + inj.allWindowKeys.length + ' 项：\n' + inj.allWindowKeys.join('\n'));
         setText('rawJson', JSON.stringify(report, null, 2));
 
+        /* 把发现的桥对象填进下面的调用台 */
+        LAST_PROBES = inj.probes;
+        try {
+            refreshTargets();
+            brRefreshMethods();
+        } catch (e) {
+            /* 调用台刷新失败不影响诊断结果 */
+        }
+
         var summary = inj.probes.length
             ? ('诊断完成：发现 ' + inj.probes.length + ' 个特征命中的全局，先看报告第三节。')
             : (inj.diff.length
@@ -528,6 +618,254 @@
                 setStatus('diagStatus', 'eruda 初始化失败：' + ((e && e.message) || e));
             }
         });
+    }
+
+    /* ==================== 桥调用台 ==================== */
+
+    var LAST_PROBES = [];
+    var DESTRUCTIVE_PATTERN = /logout|login|bind|share|pay|order|delete|remove|change|refresh|open|choose|finish|capture|set|update|invite|buy|purchase/i;
+    /* 快捷按钮：从枚举结果里挑「只读 getter」，不预设任何 App 专有名字 */
+    var QUICK_PATTERN = /^get[A-Z]/;
+    var QUICK_LIMIT = 10;
+    var BRIDGE_TARGET_HINTS = ['WebViewJavascriptBridge', 'android', 'external'];
+    var BR_OUT_TEXT = '';
+
+    function isDestructive(name) {
+        return DESTRUCTIVE_PATTERN.test(name) && !/^get/i.test(name);
+    }
+
+    function brTargetName() {
+        var custom = document.getElementById('brTargetCustom').value.trim();
+        return custom || document.getElementById('brTarget').value;
+    }
+
+    function brCurrentTarget() {
+        var name = brTargetName();
+        if (!name) return undefined;
+        return safe(function () { return window[name]; }, undefined);
+    }
+
+    function brCurrentMethod() {
+        var custom = document.getElementById('brMethodCustom').value.trim();
+        return custom || document.getElementById('brMethod').value;
+    }
+
+    function refreshTargets() {
+        var sel = document.getElementById('brTarget');
+        var prev = sel.value;
+        var names = [];
+        BRIDGE_TARGET_HINTS.slice(0, 1).forEach(function (n) { names.push(n); });
+        (LAST_PROBES || []).forEach(function (p) {
+            if (p.type === 'object' || p.type === 'function') names.push(p.name);
+        });
+        BRIDGE_TARGET_HINTS.forEach(function (n) { names.push(n); });
+        names = names.filter(function (n, i) { return n && names.indexOf(n) === i; });
+        names = names.filter(function (n) {
+            var v = safe(function () { return window[n]; }, undefined);
+            return v !== null && (typeof v === 'object' || typeof v === 'function');
+        });
+
+        sel.innerHTML = '';
+        names.forEach(function (n) {
+            var o = document.createElement('option');
+            o.value = n;
+            o.textContent = n;
+            sel.appendChild(o);
+        });
+        if (names.indexOf(prev) >= 0) sel.value = prev;
+        else if (names.indexOf('WebViewJavascriptBridge') >= 0) sel.value = 'WebViewJavascriptBridge';
+    }
+
+    function brEnumerateMethods() {
+        var t = brCurrentTarget();
+        var methods = [];
+        if (t !== null && typeof t !== 'undefined') {
+            collectKeys(t).forEach(function (e) {
+                var v = safe(function () { return readKey(t, e); }, undefined);
+                if (typeof v === 'function') methods.push(e.label.replace(/\s*\[proto\]$/, ''));
+            });
+        }
+        methods = methods.filter(function (n, i) { return methods.indexOf(n) === i; });
+        methods.sort(function (a, b) {
+            var da = isDestructive(a) ? 1 : 0;
+            var db = isDestructive(b) ? 1 : 0;
+            if (da !== db) return da - db;
+            return a.localeCompare(b);
+        });
+        return methods;
+    }
+
+    function brRefreshMethods() {
+        var sel = document.getElementById('brMethod');
+        var prev = sel.value;
+        var methods = brEnumerateMethods();
+
+        sel.innerHTML = '';
+        methods.forEach(function (n) {
+            var o = document.createElement('option');
+            o.value = n;
+            o.textContent = (isDestructive(n) ? '⚠ ' : '') + n;
+            sel.appendChild(o);
+        });
+        if (methods.indexOf(prev) >= 0) sel.value = prev;
+
+        /* 快捷按钮：挑只读 getter，点一下直接调 */
+        var row = document.getElementById('quickRow');
+        row.innerHTML = '';
+        var quick = methods.filter(function (n) { return QUICK_PATTERN.test(n); }).slice(0, QUICK_LIMIT);
+        if (quick.length) {
+            var tip = document.createElement('span');
+            tip.className = 'hint';
+            tip.textContent = '快捷调用：';
+            row.appendChild(tip);
+        }
+        quick.forEach(function (n) {
+            var b = document.createElement('button');
+            b.className = 'ghost small';
+            b.textContent = n;
+            b.addEventListener('click', function () {
+                document.getElementById('brMethodCustom').value = '';
+                document.getElementById('brMethod').value = n;
+                brCall();
+            });
+            row.appendChild(b);
+        });
+
+        setStatus('brStatus', methods.length
+            ? ('已枚举到 ' + methods.length + ' 个可调用方法。')
+            : '这个对象上没有可枚举到的方法。');
+    }
+
+    function brFormat(v) {
+        if (typeof v === 'undefined') return '(undefined)';
+        if (v === null) return 'null';
+        if (typeof v === 'string') {
+            try {
+                return 'string(内容是 JSON)：\n' + JSON.stringify(JSON.parse(v), null, 2);
+            } catch (e) {
+                return 'string：\n' + v;
+            }
+        }
+        if (typeof v === 'object') {
+            try {
+                return JSON.stringify(v, null, 2);
+            } catch (e) {
+                return '(对象无法序列化) ' + String(v);
+            }
+        }
+        return typeof v + '：' + String(v);
+    }
+
+    /* 单次尝试。callback 风格 + Promise 风格都接，超时即放弃（迟到回调会被 settled 挡掉） */
+    function brAttempt(target, method, data, mode, timeoutMs) {
+        return new Promise(function (resolve) {
+            var settled = false;
+            var timer = setTimeout(function () {
+                if (settled) return;
+                settled = true;
+                resolve({ ok: false, reason: '超时（' + timeoutMs + 'ms 内没回调，可能没注册这个 handler）' });
+            }, timeoutMs);
+
+            function done(ok, payload) {
+                if (settled) return;
+                settled = true;
+                clearTimeout(timer);
+                resolve(ok ? { ok: true, value: payload } : { ok: false, reason: payload });
+            }
+
+            function cb(resp) { done(true, resp); }
+
+            if (mode !== 'direct' && typeof target.callHandler === 'function') {
+                var sent = safe(function () { target.callHandler(method, data, cb); return true; }, false);
+                if (sent) return;
+                if (mode === 'callhandler') { done(false, 'callHandler 调用抛错'); return; }
+            }
+            if (mode === 'callhandler') { done(false, '目标上没有可用的 callHandler'); return; }
+
+            var fn = safe(function () { return target[method]; }, undefined);
+            if (typeof fn !== 'function') { done(false, '目标上没有这个方法'); return; }
+
+            var ret = safe(function () { return fn.call(target, data, cb); }, undefined);
+            if (ret && typeof ret.then === 'function') {
+                ret.then(function (v) { done(true, v); }, function (e) { done(false, 'Promise 拒绝: ' + ((e && e.message) || e)); });
+            }
+        });
+    }
+
+    function brCall() {
+        var lines = [];
+        var targetName = brTargetName();
+        var method = brCurrentMethod();
+        var mode = document.getElementById('brMode').value;
+        var data;
+
+        try {
+            data = brParseData();
+        } catch (e) {
+            setText('brOut', '参数不是合法 JSON：' + ((e && e.message) || e));
+            return;
+        }
+        if (!method) { setText('brOut', '请选择或填写要调用的方法名。'); return; }
+
+        var target = brCurrentTarget();
+        if (target === null || typeof target === 'undefined') {
+            setText('brOut', '取不到目标对象 window.' + targetName + '（名字写错，或这个页面里没注入）。');
+            return;
+        }
+        if (isDestructive(method) && !document.getElementById('brForce').checked) {
+            setText('brOut', '⚠ ' + method + ' 被判定为可能有副作用（登出 / 绑定 / 刷新 token / 分享之类），\n'
+                + '确认要调请勾上「允许调用可能有副作用的 handler」再试。');
+            return;
+        }
+
+        lines.push('目标: window.' + targetName);
+        lines.push('方法: ' + method + '()');
+        lines.push('参数: ' + JSON.stringify(data));
+        lines.push('本页 origin: ' + location.origin);
+        lines.push('');
+
+        var attempts = mode === 'callhandler' ? ['callhandler'] : (mode === 'direct' ? ['direct'] : ['callhandler', 'direct']);
+
+        setText('brOut', lines.join('\n'));
+        setStatus('brStatus', '调用中…');
+
+        (function next(i) {
+            if (i >= attempts.length) {
+                lines.push('❌ 都没拿到响应。');
+                lines.push('可能原因：方法名不对 / App 没注册这个 handler / 它根本不回调 / 原生按调用来源做了校验。');
+                BR_OUT_TEXT = lines.join('\n');
+                setText('brOut', BR_OUT_TEXT);
+                setStatus('brStatus', '无响应。');
+                return;
+            }
+            var m = attempts[i];
+            lines.push('--- 尝试方式：' + m + ' ---');
+            setText('brOut', lines.join('\n'));
+
+            brAttempt(target, method, data, m, 2500).then(function (r) {
+                if (r.ok) {
+                    lines.push('✅ 有响应：');
+                    lines.push(brFormat(r.value));
+                    BR_OUT_TEXT = lines.join('\n');
+                    setText('brOut', BR_OUT_TEXT);
+                    setStatus('brStatus', '成功（方式：' + m + '）。');
+                } else {
+                    lines.push('✗ ' + r.reason);
+                    setText('brOut', lines.join('\n'));
+                    next(i + 1);
+                }
+            });
+        })(0);
+    }
+
+    function brParseData() {
+        var raw = document.getElementById('brData').value.trim();
+        if (!raw) return {};
+        return JSON.parse(raw);
+    }
+
+    function brCopy() {
+        copyText(BR_OUT_TEXT || '（还没有结果）', 'brStatus');
     }
 
     /* ==================== 直连测试 ==================== */
@@ -606,7 +944,7 @@
         });
     }
 
-    /* ==================== 跳转（保持原有行为）==================== */
+    /* ==================== 跳转 ==================== */
 
     function normalizeUrl(raw) {
         var v = (raw || '').trim();
@@ -646,8 +984,10 @@
         }
     }
 
-    function copyReport() {
-        var text = LAST_REPORT_TEXT || '（还没生成报告）';
+    /* ==================== 剪贴板 ==================== */
+
+    function copyText(text, statusId) {
+        statusId = statusId || 'diagStatus';
         function fallback() {
             try {
                 var ta = document.createElement('textarea');
@@ -657,18 +997,22 @@
                 ta.select();
                 var ok = document.execCommand('copy');
                 document.body.removeChild(ta);
-                setStatus('diagStatus', ok ? '已复制到剪贴板。' : '复制失败，请手动展开「原始 JSON」抄走。');
+                setStatus(statusId, ok ? '已复制到剪贴板。' : '复制失败，请手动选中内容抄走。');
             } catch (e) {
-                setStatus('diagStatus', '复制失败，请手动展开「原始 JSON」抄走。');
+                setStatus(statusId, '复制失败，请手动选中内容抄走。');
             }
         }
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(text).then(function () {
-                setStatus('diagStatus', '已复制到剪贴板。');
+                setStatus(statusId, '已复制到剪贴板。');
             }, fallback);
         } else {
             fallback();
         }
+    }
+
+    function copyReport() {
+        copyText(LAST_REPORT_TEXT || '（还没生成报告）', 'diagStatus');
     }
 
     /* ==================== 绑定 ==================== */
@@ -679,6 +1023,11 @@
     document.getElementById('btnEruda').addEventListener('click', toggleEruda);
     document.getElementById('btnCopy').addEventListener('click', copyReport);
     document.getElementById('btnSend').addEventListener('click', sendRequest);
+    document.getElementById('btnBrCall').addEventListener('click', brCall);
+    document.getElementById('btnBrRefresh').addEventListener('click', brRefreshMethods);
+    document.getElementById('btnBrCopy').addEventListener('click', brCopy);
+    document.getElementById('brTarget').addEventListener('change', brRefreshMethods);
+    document.getElementById('brTargetCustom').addEventListener('change', brRefreshMethods);
 
     document.getElementById('urlInput').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') redirectToUrl();
