@@ -17,8 +17,7 @@ export default function HomePage() {
         'https://prod-alicdn-community.kurobbs.com/forum/d69b5df0db0243c4b2bb742e6395caab20250216.png',
         'https://patchwiki.biligame.com/images/bangdream/b/b8/hv5payemg0479latvd1zxisburrv0cj.png',
         'https://patchwiki.biligame.com/images/ba/3/30/k2pgz6uy5ypousdel9f0ggz7s24wa94.png',
-        'https://cdnimg.gamekee.com/wiki2.0/images/w_3475/h_2583/829/43637/2022/7/25/428958.png',
-        'https://cdnimg.gamekee.com/wiki2.0/images/w_3464/h_2569/829/43637/2023/3/26/845977.png',
+
         'https://webcnstatic.yostar.net/ba_cn_web/prod/upload/wallpaper/X0_6rTZl.jpeg',
         "https://prod-alicdn-community.kurobbs.com/forum/9698f7c745434923b62da339667f372520240517.png",
         "https://prod-alicdn-community.kurobbs.com/forum/fac40f7875194fe4a4422a2a0ded679920240627.jpg",
@@ -68,8 +67,7 @@ export default function HomePage() {
       'https://patchwiki.biligame.com/images/bangdream/5/5b/9eyud0atxb21umz3oyh8j235me9h3wz.png',
         'https://patchwiki.biligame.com/images/bangdream/b/b8/hv5payemg0479latvd1zxisburrv0cj.png',
         'https://patchwiki.biligame.com/images/ba/3/30/k2pgz6uy5ypousdel9f0ggz7s24wa94.png',
-        'https://cdnimg.gamekee.com/wiki2.0/images/w_3475/h_2583/829/43637/2022/7/25/428958.png',
-        'https://cdnimg.gamekee.com/wiki2.0/images/w_3464/h_2569/829/43637/2023/3/26/845977.png',
+  "https://i.danieltoyama.fun/img-master/img/2026/09/05/23/49/28/149319138_p0_master1200.jpg",
         'https://webcnstatic.yostar.net/ba_cn_web/prod/upload/wallpaper/X0_6rTZl.jpeg',
         "https://prod-alicdn-community.kurobbs.com/forum/9698f7c745434923b62da339667f372520240517.png",
         "https://prod-alicdn-community.kurobbs.com/forum/fac40f7875194fe4a4422a2a0ded679920240627.jpg",
@@ -84,8 +82,12 @@ export default function HomePage() {
          "https://prod-alicdn-community.kurobbs.com/forum/7664098c711a4d90863c6e4423d9432e20250727.jpg",
          "https://prod-alicdn-community.kurobbs.com/forum/b675d70ffa934ecbb7e746b9badd421d20250902.jpg",
          "https://prod-alicdn-community.kurobbs.com/forum/fe527f83971a40628d86c8dcb2f5853f20250902.jpg" ,
+         "https://i.danieltoyama.fun/img-master/img/2026/05/06/19/47/11/144448810_p0_master1200.jpg",
+         "https://i.danieltoyama.fun/img-master/img/2026/01/27/20/28/00/140444834_p0_master1200.jpg",
          "https://prod-alicdn-community.kurobbs.com/forum/31207bd9fbe74c279ae63f3cef50630c20260428.jpg",
         "https://prod-alicdn-community.kurobbs.com/forum/888ce69be3f64dc98711724ee2463c5220260428.jpg",
+        "https://i.danieltoyama.fun/img-master/img/2026/05/06/23/14/25/144459919_p0_master1200.jpg",
+        "https://i.danieltoyama.fun/img-master/img/2026/02/05/13/00/53/140794203_p0_master1200.jpg"
         
     ];
 

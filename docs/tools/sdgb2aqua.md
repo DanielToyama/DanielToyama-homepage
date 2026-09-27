@@ -42,7 +42,10 @@ import IframeWithDynamicSrc from '@site/src/components/IframeWithDynamicSrc';
 
 3.使用[divingfish.html](https://danieltoyama.github.io/MaiData2Aqua/divingfish.html)从水鱼maimai工具转换(P.S.:因为使用了Cloudfare的服务可能部分地区需要使用VPN才能正常使用)
 
-4.本地启动Nodejs环境使用[index.js](https://danieltoyama.github.io/MaiData2Aqua/index.js)转换麦当劳机器人获取的数据（非常不推荐）
+4.使用[dxrating.html](https://danieltoyama.github.io/MaiData2Aqua/dxrating.html)从dxrating工具转换（通常适用于国际服玩家，有待测试，dxrating似乎只提供b50导出）
+
+
+5.本地启动Nodejs环境使用[index.js](https://danieltoyama.github.io/MaiData2Aqua/index.js)转换麦当劳机器人获取的数据（非常不推荐）
 
 如果觉得对你有帮助，点个star支持一下呗~
 
