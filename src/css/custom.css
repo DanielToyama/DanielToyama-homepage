@@ -29,3 +29,19 @@
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
 }
 
+/*
+ * 正文里内嵌页面的兜底样式。
+ * 新写的嵌入页请优先用 src/components/ResponsiveIframe（会跟随栏宽、并按内容自动定高）；
+ * 这里的规则只用于兜住仍然写死像素宽高的旧 iframe，避免它在手机上撑破布局。
+ */
+.markdown iframe {
+  max-width: 100%;
+}
+
+.markdown iframe[width$='px'] {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  border: 0;
+}
+

@@ -29,6 +29,7 @@ import Spoiler from '@site/src/components/Spoiler';
     marginheight="0"
     width="40%"
     height="110"
+    style={{ minWidth: '260px', maxWidth: '100%' }}
     src="//music.163.com/outchain/player?type=2&id=1818777226&auto=1&height=90">
 </iframe>
 
