@@ -2,6 +2,8 @@
 sidebar_position: 3
 ---
 
+import ResponsiveIframe from '@site/src/components/ResponsiveIframe';
+
 # Web页面跳转器
 
 随手搓的，用于使得那些奇奇怪怪的客户端内置webview跳转到想要去的任何地方。
@@ -12,7 +14,7 @@ sidebar_position: 3
 
 
 
-<a href="/mytools/webJumpAny.html" onClick={(e) => { e.preventDefault(); window.location.href = '/mytools/webJumpAny.html'; }}>全屏</a>
+<a href="/mytools/webJumpAny.html" onClick={(e) => { e.preventDefault(); window.location.href = '/mytools/webJumpAny.html'; }}>直接访问</a>
 
-<iframe src="/mytools/webJumpAny.html" width="1000px" height="1000px"></iframe>
+<ResponsiveIframe src="/mytools/webJumpAny.html" title="Web 页面跳转器" />
 

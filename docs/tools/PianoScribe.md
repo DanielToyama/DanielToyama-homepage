@@ -2,6 +2,8 @@
 sidebar_position: 3
 ---
 
+import ResponsiveIframe from '@site/src/components/ResponsiveIframe';
+
 # PianoScribe — 弹琴记录器
 
 一个在浏览器里运行的**写谱工具**：把你想弹的旋律、和弦、乐句，先在网页上简单地按出来、记录下来，再对照着谱面去游戏里弹。无需安装，打开即用。
@@ -11,7 +13,7 @@ sidebar_position: 3
 ---
 <a href="/mytools/PianoScribe.html" onClick={(e) => { e.preventDefault(); window.location.href = '/mytools/PianoScribe.html'; }}>直接访问此网页</a>
 
-<iframe src="/mytools/PianoScribe.html" width="1000px" height="1000px"></iframe>
+<ResponsiveIframe src="/mytools/PianoScribe.html" title="PianoScribe 弹琴记录器" />
 
 ## 🎯 使用场景
 
