@@ -275,18 +275,6 @@
         return window;
     };
 
-    const openInNewTab = (url) => {
-        // 用合成一次 a[target=_blank] 的点击来开新标签页：window.open 在定时器里
-        // （没有用户手势）会被弹窗拦截，而链接点击不会。
-        const a = document.createElement('a');
-        a.href = url;
-        a.target = '_blank';
-        a.rel = 'noopener noreferrer';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-    };
-
     const openInTapTap = (tapId, fallbackUrl) => {
         const target = topWindow();
         const doc = target.document;
@@ -301,7 +289,7 @@
             doc.removeEventListener('visibilitychange', onVisibilityChange);
         };
         function onVisibilityChange() {
-            // 页面被切到后台 = App 真的被唤起来了，就别再开网页了
+            // 页面被切到后台 = App 真的被唤起来了，就别再跳网页了
             if (doc.hidden) {
                 opened = true;
                 finish();
@@ -311,8 +299,10 @@
         doc.addEventListener('visibilitychange', onVisibilityChange);
         timer = setTimeout(() => {
             finish();
-            // 没唤起成功：网页版新开一个标签页，当前这个页面（博客）不动
-            if (!opened) openInNewTab(fallbackUrl);
+            // 没唤起成功：直接用当前页面跳过去。
+            // 这里不能用新开标签页（window.open / 合成 a[target=_blank] 点击）——手机浏览器
+            // 对「没有用户手势的定时器里开窗口」拦得很死，实测会被弹窗拦截。
+            if (!opened) target.location.href = fallbackUrl;
         }, TAP_WAIT);
 
         target.location.href = TAP_SCHEME + tapId;
