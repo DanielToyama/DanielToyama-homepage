@@ -19,15 +19,20 @@
  *            字符串 → 直接当 CSS 背景用，例如 '#43b581' 或整段渐变
  *            不写 → 按 name 自动配一个
  *   fill   图片是「不带透明通道的正方形整图」时写 true：铺满整格，不垫底色、不留白边
+ *   tapId  TapTap 的 app id。写了它，**手机上**点这个图标会先试着用 URL Scheme 唤起
+ *          TapTap App（taptap://taptap.com/app?app_id=<tapId>），2.5 秒内没唤起成功
+ *          就退回 url 那个网页；桌面上不折腾，照常新开标签页。
+ *          在 TapTap 上有条目的游戏才写，dock 里的应用和自己站点都不用写。
+ *          想关掉某个图标的唤端，把 tapId 删掉即可。
  *
  * 关于图标文件（2026-10-12）：
  *   音游图标取自 TapTap 官方图标，dock 里的应用图标取自 App Store（iTunes Search API），
- *   统一用 ffmpeg 转成 180x180 webp 放在 static/mytools/icons/（30 个共 336KB）。
+ *   统一用 ffmpeg 转成 180x180 webp 放在 static/mytools/icons/。
  *   两类原图都是整块铺满的方形图，所以都写了 fill: true（不垫 color 底色）：
- *     - TapTap 原图是 270x270 带透明圆角的 PNG，每行末尾 // tt:<app id> 是它的 app id
+ *     - TapTap 原图是 270x270 带透明圆角的 PNG，tapId 就是它的 app id
+ *       （个别 app 在 TapTap 上只有 32px 的图，这种换 App Store 的，比如 hololive Dreams）
  *     - App Store 原图是不带透明通道的方图，抓法见 icons/README.md
- *   两边都搜不到的继续用 emoji：Phira / REPhityOS / Play 商店，
- *   以及第二页那些自己的站点。
+ *   两边都搜不到的继续用 emoji：Phira，以及第二页那些自己的站点。
  * ===================================================================== */
 window.TABLET_HOME = {
 
@@ -109,35 +114,35 @@ window.TABLET_HOME = {
     /* ---------------- 图标（按顺序排，满一页自动翻页） ---------------- */
     icons: [
         // ---- 第一页：板子上的音游 ----
-        { name: 'Phigros', url: 'https://www.taptap.cn/app/165287', emoji: '🕊️', img: '/mytools/icons/phigros.webp', fill: true, color: 214 }, // tt:165287
-        { name: 'Rizline', url: 'https://www.taptap.cn/app/201173/', emoji: '🎶', img: '/mytools/icons/rizline.webp', fill: true, color: 140 }, // tt:201173
+        { name: 'Phigros', url: 'https://www.taptap.cn/app/165287', tapId: 165287, emoji: '🕊️', img: '/mytools/icons/phigros.webp', fill: true, color: 214 },
+        { name: 'Rizline', url: 'https://www.taptap.cn/app/201173/', tapId: 201173, emoji: '🎶', img: '/mytools/icons/rizline.webp', fill: true, color: 140 },
         { name: 'Phira', url: 'https://phira.moe/', emoji: '🪶', img: '/mytools/icons/phira.webp', fill: true, color: 168 },
-        { name: '旋转音律', url: 'https://rotaeno.com/', emoji: '🔄', img: '/mytools/icons/rotaeno.webp', fill: true, color: 200 },
-        { name: '梦想协奏曲！', url: 'https://game.bilibili.com/bangdream/', emoji: '🎸', img: '/mytools/icons/band-dream.webp', fill: true, color: 340 }, // tt:67848
-        { name: 'プロセカ', url: 'https://pjsekai.sega.jp/', emoji: '🎤', img: '/mytools/icons/project-sekai.webp', fill: true, color: 190 }, // tt:223265
-        { name: 'Orzmic', url: 'https://www.taptap.cn/app/194778', emoji: '⬡', img: '/mytools/icons/orzmic.webp', fill: true, color: 258 }, // tt:194778
-        { name: '鸣潮', url: 'http://mc.kurogames.com/', emoji: '🌊', img: '/mytools/icons/wuthering-waves.webp', fill: true, color: 195 }, // tt:234280
-        { name: 'Malody', url: 'https://m.mugzone.net/', emoji: '🎲', img: '/mytools/icons/malody.webp', fill: true, color: 260 }, // tt:10115
-        { name: '范式：起源', url: 'https://paradigmchina.tunergames.com/', emoji: '🌀', img: '/mytools/icons/paradigm-reboot.webp', fill: true, color: 42 },  // tt:203917
-        { name: 'MuseDash', url: 'https://musedash.peropero.net/', emoji: '💘', img: '/mytools/icons/musedash.webp', fill: true, color: 330 }, // tt:60809
-        { name: 'RYCEAM', url: 'https://www.taptap.cn/app/237034', emoji: '🎹', img: '/mytools/icons/ryceam.webp', fill: true, color: 45 },  // tt:237034
-        { name: '调律诗篇', url: 'https://www.taptap.cn/app/14118', emoji: '🔄', img: '/mytools/icons/lanota.webp', fill: true, color: 200 }, // tt:166257
-        { name: '音乐世界 Cytus', url: 'https://www.rayark.com/g/cytus/', emoji: '🎭', img: '/mytools/icons/cytus.webp', fill: true, color: 0 },   // tt:6367
-        { name: 'Cytus II', url: 'https://www.rayark.com/g/cytus2/', emoji: '🔷', img: '/mytools/icons/cytus2.webp', fill: true, color: 205 }, // tt:71067
-        { name: '古树旋律', url: 'https://www.rayark.com/g/deemo/', emoji: '🌳', img: '/mytools/icons/deemo.webp', fill: true, color: 130 }, // tt:6759
-        { name: '花雨旋律', url: 'https://www.taptap.cn/app/180183', emoji: '🌧️', img: '/mytools/icons/huayu-xuanlv.webp', fill: true, color: 200 }, // tt:180183
-        { name: 'Blue Archive', url: 'https://bluearchive.jp/', emoji: '🎀', img: '/mytools/icons/blue-archive.webp', fill: true, color: 220 }, // tt:316964
-        { name: 'AstroDX', url: 'https://wiki.astrodx.com/cn', emoji: '🌟', img: '/mytools/icons/astrodx.webp', fill: true, color: 35 },  // tt:858110
-        { name: '节奏大师', url: 'https://da.qq.com/', emoji: '🎧', img: '/mytools/icons/jiezou-dashi.webp', fill: true, color: 210 }, // tt:7057
-        { name: 'ChainBeeT', url: 'https://www.taptap.cn/app/314277', emoji: '🐝', img: '/mytools/icons/chainbeet.webp', fill: true, color: 48 },  // tt:314277
-        { name: 'Milthm', url: 'https://milthm.com/', emoji: '🌙', img: '/mytools/icons/milthm.webp', fill: true, color: 285 }, // tt:301888
-        { name: 'Minecraft', url: 'https://www.minecraft.net/', emoji: '⛏️', img: '/mytools/icons/minecraft.webp', fill: true, color: 100 }, // tt:43639
-        { name: 'Arcaea', url: 'https://arcaea.lowiro.com/', emoji: '💠', img: '/mytools/icons/arcaea.webp', fill: true, color: 195 }, // tt:41333
-        { name: 'Dynamix', url: 'https://www.taptap.cn/app/7082', emoji: '🔺', img: '/mytools/icons/dynamix.webp', fill: true, color: 15 },  // tt:7082
-        { name: 'hololive Dreams', url: 'https://www.hololive-dreams.com/en', emoji: '💫', img: '/mytools/icons/hololive-dreams.webp', fill: true, color: 330 }, // tt:892627
-        { name: '同步音律', url: 'https://www.taptap.cn/app/6908', emoji: '🎼', img: '/mytools/icons/musynx.webp', fill: true, color: 260 }, // tt:6908
-        { name: 'TAKUMI³', url: 'https://www.taptap.cn/app/193975', emoji: '🛠️', img: '/mytools/icons/takumi3.webp', fill: true, color: 30 },  // tt:193975
-        { name: '跳舞的线', url: 'https://www.taptap.cn/app/31429', emoji: '💃', img: '/mytools/icons/dancing-line.webp', fill: true, color: 150 }, // tt:31429
+        { name: '旋转音律', url: 'https://rotaeno.com/', tapId: 166257, emoji: '🔄', img: '/mytools/icons/rotaeno.webp', fill: true, color: 200 },
+        { name: '梦想协奏曲！', url: 'https://game.bilibili.com/bangdream/', tapId: 67848, emoji: '🎸', img: '/mytools/icons/band-dream.webp', fill: true, color: 340 },
+        { name: 'プロセカ', url: 'https://pjsekai.sega.jp/', tapId: 223265, emoji: '🎤', img: '/mytools/icons/project-sekai.webp', fill: true, color: 190 },
+        { name: 'Orzmic', url: 'https://www.taptap.cn/app/194778', tapId: 194778, emoji: '⬡', img: '/mytools/icons/orzmic.webp', fill: true, color: 258 },
+        { name: '鸣潮', url: 'http://mc.kurogames.com/', tapId: 234280, emoji: '🌊', img: '/mytools/icons/wuthering-waves.webp', fill: true, color: 195 },
+        { name: 'Malody', url: 'https://m.mugzone.net/', tapId: 10115, emoji: '🎲', img: '/mytools/icons/malody.webp', fill: true, color: 260 },
+        { name: '范式：起源', url: 'https://paradigmchina.tunergames.com/', tapId: 203917, emoji: '🌀', img: '/mytools/icons/paradigm-reboot.webp', fill: true, color: 42 },
+        { name: 'MuseDash', url: 'https://musedash.peropero.net/', tapId: 60809, emoji: '💘', img: '/mytools/icons/musedash.webp', fill: true, color: 330 },
+        { name: 'RYCEAM', url: 'https://www.taptap.cn/app/237034', tapId: 237034, emoji: '🎹', img: '/mytools/icons/ryceam.webp', fill: true, color: 45 },
+        { name: '调律诗篇', url: 'https://www.taptap.cn/app/14118', tapId: 14118, emoji: '🔄', img: '/mytools/icons/lanota.webp', fill: true, color: 200 },
+        { name: '音乐世界 Cytus', url: 'https://www.rayark.com/g/cytus/', tapId: 6367, emoji: '🎭', img: '/mytools/icons/cytus.webp', fill: true, color: 0 },
+        { name: 'Cytus II', url: 'https://www.rayark.com/g/cytus2/', tapId: 71067, emoji: '🔷', img: '/mytools/icons/cytus2.webp', fill: true, color: 205 },
+        { name: '古树旋律', url: 'https://www.rayark.com/g/deemo/', tapId: 6759, emoji: '🌳', img: '/mytools/icons/deemo.webp', fill: true, color: 130 },
+        { name: '花雨旋律', url: 'https://www.taptap.cn/app/180183', tapId: 180183, emoji: '🌧️', img: '/mytools/icons/huayu-xuanlv.webp', fill: true, color: 200 },
+        { name: 'Blue Archive', url: 'https://bluearchive.jp/', tapId: 316964, emoji: '🎀', img: '/mytools/icons/blue-archive.webp', fill: true, color: 220 },
+        { name: 'AstroDX', url: 'https://wiki.astrodx.com/cn', tapId: 858110, emoji: '🌟', img: '/mytools/icons/astrodx.webp', fill: true, color: 35 },
+        { name: '节奏大师', url: 'https://da.qq.com/', tapId: 7057, emoji: '🎧', img: '/mytools/icons/jiezou-dashi.webp', fill: true, color: 210 },
+        { name: 'ChainBeeT', url: 'https://www.taptap.cn/app/314277', tapId: 314277, emoji: '🐝', img: '/mytools/icons/chainbeet.webp', fill: true, color: 48 },
+        { name: 'Milthm', url: 'https://milthm.com/', tapId: 301888, emoji: '🌙', img: '/mytools/icons/milthm.webp', fill: true, color: 285 },
+        { name: 'Minecraft', url: 'https://www.minecraft.net/', tapId: 43639, emoji: '⛏️', img: '/mytools/icons/minecraft.webp', fill: true, color: 100 },
+        { name: 'Arcaea', url: 'https://arcaea.lowiro.com/', tapId: 41333, emoji: '💠', img: '/mytools/icons/arcaea.webp', fill: true, color: 195 },
+        { name: 'Dynamix', url: 'https://www.taptap.cn/app/7082', tapId: 7082, emoji: '🔺', img: '/mytools/icons/dynamix.webp', fill: true, color: 15 },
+        { name: 'hololive Dreams', url: 'https://www.hololive-dreams.com/en', tapId: 892627, emoji: '💫', img: '/mytools/icons/hololive-dreams.webp', fill: true, color: 330 },
+        { name: '同步音律', url: 'https://www.taptap.cn/app/6908', tapId: 6908, emoji: '🎼', img: '/mytools/icons/musynx.webp', fill: true, color: 260 },
+        { name: 'TAKUMI³', url: 'https://www.taptap.cn/app/193975', tapId: 193975, emoji: '🛠️', img: '/mytools/icons/takumi3.webp', fill: true, color: 30 },
+        { name: '跳舞的线', url: 'https://www.taptap.cn/app/31429', tapId: 31429, emoji: '💃', img: '/mytools/icons/dancing-line.webp', fill: true, color: 150 },
 
         // ---- 第二页：自己的东西 ----
         // 图标优先抓各自官网声明的 icon（apple-touch-icon / rel=icon）；官网没有或站点挂了的继续用 emoji。

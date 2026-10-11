@@ -249,6 +249,75 @@
         s.setProperty('--dock-label-size', dockLabel.size || '11px');
     };
 
+    /* ---------------- TapTap 唤端 ---------------- */
+    /*
+     * 写了 tapId 的图标（= 在 TapTap 上有条目的游戏），在手机上点击时先试着用 URL Scheme
+     * 唤起 TapTap App；2.5 秒内页面没被切到后台（说明没唤起成功）就退回 url 那个网页。
+     *
+     * 两个坑：
+     * 1) 只在手机 UA 上这么做。桌面上 taptap:// 没人处理，白等 2.5 秒才跳转，反而变慢。
+     * 2) 自定义 scheme 必须由顶层窗口发起：在 iframe 里改自己的 location 会被浏览器拦掉。
+     *    本页和站点同源，所以能直接操作 window.top；万一以后被跨源内嵌，就退回自己（够不着也只能这样）。
+     */
+    const TAP_SCHEME = 'taptap://taptap.com/app?app_id=';
+    const TAP_WAIT = 2500;
+
+    const isMobile = () =>
+        /Android|iPhone|iPad|iPod|Mobile|HarmonyOS/i.test(navigator.userAgent) ||
+        window.matchMedia('(pointer: coarse)').matches;
+
+    const topWindow = () => {
+        try {
+            if (window.top && window.top.document) return window.top;
+        } catch (error) {
+            /* 跨源内嵌，拿不到顶层文档 */
+        }
+        return window;
+    };
+
+    const openInNewTab = (url) => {
+        // 用合成一次 a[target=_blank] 的点击来开新标签页：window.open 在定时器里
+        // （没有用户手势）会被弹窗拦截，而链接点击不会。
+        const a = document.createElement('a');
+        a.href = url;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+    };
+
+    const openInTapTap = (tapId, fallbackUrl) => {
+        const target = topWindow();
+        const doc = target.document;
+        let opened = false;
+        let timer = null;
+
+        const finish = () => {
+            if (timer !== null) {
+                clearTimeout(timer);
+                timer = null;
+            }
+            doc.removeEventListener('visibilitychange', onVisibilityChange);
+        };
+        function onVisibilityChange() {
+            // 页面被切到后台 = App 真的被唤起来了，就别再开网页了
+            if (doc.hidden) {
+                opened = true;
+                finish();
+            }
+        }
+
+        doc.addEventListener('visibilitychange', onVisibilityChange);
+        timer = setTimeout(() => {
+            finish();
+            // 没唤起成功：网页版新开一个标签页，当前这个页面（博客）不动
+            if (!opened) openInNewTab(fallbackUrl);
+        }, TAP_WAIT);
+
+        target.location.href = TAP_SCHEME + tapId;
+    };
+
     /* ---------------- 图标 ---------------- */
     // 没写 color 时按名字配一个稳定又不难看的色相
     const hueOf = (name) => {
@@ -271,9 +340,18 @@
         const a = document.createElement('a');
         a.className = 'app';
         a.href = item.url || '#';
-        a.target = '_blank';
-        a.rel = 'noopener noreferrer';
         a.title = item.name;
+
+        if (item.tapId && isMobile()) {
+            // 手机上走唤端，所以不要新开标签页，链接本身留着（长按/复制链接还是网页版）
+            a.addEventListener('click', (event) => {
+                event.preventDefault();
+                openInTapTap(item.tapId, item.url);
+            });
+        } else {
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+        }
 
         const tile = document.createElement('span');
         tile.className = 'tile';
