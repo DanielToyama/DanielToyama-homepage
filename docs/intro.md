@@ -32,7 +32,7 @@ import ResponsiveIframe from '@site/src/components/ResponsiveIframe';
     width="40%"
     height="110"
     style={{ minWidth: '260px', maxWidth: '100%' }}
-    src="//music.163.com/outchain/player?type=2&id=1818777226&auto=1&height=90">
+    src="//music.163.com/outchain/player?type=2&id=1818777226&auto=0&height=90">
 </iframe>
 
 Phigros15.81/Orzmic13.278/Malody5Dan/Rotaeno16.545
