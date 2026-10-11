@@ -27,12 +27,13 @@ const DxRating = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const dfReq = await fetch('https://124.220.188.199/api/v2/game/mai2/user-summary?username=Danieltoyama');
-                const data = await dfReq.json();
-                setDxRating(data.rating);
+                const res = await fetch('https://mudxprofile.danieluu.top/');
+                const json = await res.json();
+                const rating = json?.data?.mai2?.rating;  
+                setDxRating(rating);
             } catch (error) {
                 console.error('Failed to fetch DX rating:', error);
-                setDxRating(14430);
+                setDxRating(14600);
             }
         };
 
