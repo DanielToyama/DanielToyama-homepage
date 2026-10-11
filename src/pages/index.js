@@ -226,7 +226,7 @@ export default function HomePage() {
                             <Link
                                 className="button button--secondary button--lg"
                                 to="./docs/intro">
-                                看看兔兔
+                                关于兔兔
                             </Link>
                         </div>
                     </div>

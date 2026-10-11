@@ -16,6 +16,8 @@ import MilthmReality from '@site/src/components/MilthmReality';
 
 import Spoiler from '@site/src/components/Spoiler';
 
+import ResponsiveIframe from '@site/src/components/ResponsiveIframe';
+
 # 关于兔兔
 
 欢迎你的来访！我是Daniel_兔兔/DanielLin/户山兔兔！音游人/技术爱好者/二次元
@@ -62,7 +64,11 @@ Phigros15.81/Orzmic13.278/Malody5Dan/Rotaeno16.545
 <img src="../docs/pjsk.jpg" alt="Image Alt Text" width="650" height="470" />
 
  -->
- <img src="../docs/pad.jpg" alt="Image Alt Text" width="500" height="400" />
+ <!-- 静态截图，换成下面可点的板子之后就先留在这儿备着
+ <img src="../docs/pad.jpg" alt="Image Alt Text" width="500" height="400" /> -->
+
+<ResponsiveIframe src="/mytools/tabletHome.html" title="兔兔的板子" />
+
 主要玩的音游其实就几个，不过有了其他的新音游也会第一时间去体验
 
 ## 技术爱好者

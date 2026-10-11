@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>兔兔的板子</title>
+<style>
+    /*
+     * 这个页面是给 docs/intro.md 里的 ResponsiveIframe 内嵌用的，所有尺寸都由
+     * tabletHome.config.js 通过 CSS 变量喂进来（变量名见下面的 fallback 值）。
+     *
+     * 两条硬规矩，改样式时别破：
+     * 1) 不写 min-height: 100vh —— 高度必须由内容撑出来，外层才能量准。
+     * 2) 凡是影响高度的尺寸都用固定 px，不要用 vw / 百分比跟着宽度缩放。
+     *    外层量高度时会先强制显示滚动条，而 iframe 里的 vw 会跟着滚动条变，
+     *    图标一跟着变，内容高度就跟着变 → 滚动条时有时无 → 高度永远收敛不了。
+     */
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+        margin: 0;
+        padding: 16px 16px 18px;
+        overflow-x: clip;
+        font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+        color: #fff;
+        background: var(--wallpaper, #26325e);
+    }
+    /* 壁纸单独铺一层，这样能加模糊/压暗而不影响布局（fixed 元素不参与高度计算） */
+    body::before {
+        content: '';
+        position: fixed;
+        inset: -10%;
+        z-index: -1;
+        background: var(--wallpaper, #26325e);
+        background-size: cover;
+        background-position: center;
+        filter: blur(var(--wallpaper-blur, 0px));
+    }
+
+    /* ---------- 翻页 ---------- */
+    /* 舞台负责定位箭头，视口负责裁掉左右两边的其他页 */
+    .stage { position: relative; }
+    .viewport { overflow: hidden; padding: 4px 0 8px; }
+    .track {
+        display: flex;
+        transition: transform 0.3s ease;
+        will-change: transform;
+    }
+    .page {
+        flex: 0 0 100%;
+        display: grid;
+        gap: var(--gap, 12px);
+        align-content: start;
+    }
+
+    /* ---------- 图标 ---------- */
+    .app {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
+        text-decoration: none;
+        color: inherit;
+        -webkit-tap-highlight-color: transparent;
+    }
+    .tile {
+        width: var(--tile-size, 64px);
+        height: var(--tile-size, 64px);
+        max-width: 100%;
+        border-radius: var(--tile-radius, 24%);
+        display: grid;
+        place-items: center;
+        font-size: var(--tile-font, 34px);
+        line-height: 1;
+        overflow: hidden;
+        box-shadow: var(--tile-shadow, none);
+        transition: transform 0.16s ease, box-shadow 0.16s ease;
+    }
+    /* 透明底的小 logo：缩进一圈留白，底下露出的就是该项配的 color */
+    .tile img {
+        width: 100%;
+        height: 100%;
+        padding: var(--tile-inset, 0);
+        object-fit: var(--image-fit, contain);
+        display: block;
+    }
+    /* 不带透明通道的正方形整图：铺满，不垫底色 */
+    .tile.fill { background: none !important; }
+    .tile.fill img { padding: 0; object-fit: cover; }
+    .label {
+        max-width: 100%;
+        font-size: var(--label-size, 12px);
+        line-height: 1.25;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: var(--label-color, #fff);
+        text-shadow: var(--label-shadow, none);
+    }
+    .app:hover .tile,
+    .app:focus-visible .tile {
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 12px 22px rgba(20, 26, 51, 0.4);
+    }
+    .app:active .tile { transform: scale(0.94); }
+
+    /* ---------- 翻页箭头 ---------- */
+    .nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        border: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.22);
+        color: #fff;
+        font-size: 16px;
+        line-height: 1;
+        cursor: pointer;
+        backdrop-filter: blur(6px);
+        transition: background-color 0.16s ease;
+    }
+    .nav:hover { background: rgba(255, 255, 255, 0.36); }
+    .nav.prev { left: -6px; }
+    .nav.next { right: -6px; }
+    .nav[hidden] { display: none; }
+
+    /* ---------- 页码 ---------- */
+    .dots {
+        display: flex;
+        justify-content: center;
+        gap: 7px;
+        margin: 14px 0 0;
+    }
+    .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.45);
+        transition: background-color 0.2s ease, transform 0.2s ease;
+    }
+    .dot.on { background: #fff; transform: scale(1.15); }
+
+    /* ---------- Dock ---------- */
+    .dock {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(var(--dock-min, 34px), 1fr));
+        gap: var(--dock-gap, 8px);
+        align-items: center;
+        margin: var(--dock-margin, 16px 0 0);
+        padding: var(--dock-padding, 10px 12px);
+        border: var(--dock-border, 0);
+        border-radius: var(--dock-radius, 26px);
+        background: var(--dock-bg, transparent);
+        backdrop-filter: blur(var(--dock-blur, 0px));
+        box-shadow: 0 8px 22px rgba(20, 26, 51, 0.24);
+    }
+    .dock .app { gap: 4px; }
+    .dock .tile { width: var(--dock-size, 34px); height: var(--dock-size, 34px); }
+    .dock .label { font-size: var(--dock-label-size, 11px); }
+
+    @media (max-width: 560px) {
+        .nav { display: none; }
+    }
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+    <div class="viewport" id="viewport">
+        <div class="track" id="track"></div>
+    </div>
+    <button class="nav prev" id="prev" type="button" aria-label="上一页" hidden>&#8249;</button>
+    <button class="nav next" id="next" type="button" aria-label="下一页" hidden>&#8250;</button>
+</div>
+<div class="dots" id="dots"></div>
+<div class="dock" id="dock"></div>
+
+<script src="tabletHome.config.js"></script>
+<script>
+(function () {
+    'use strict';
+
+    const CFG = window.TABLET_HOME || {};
+    const GRID = CFG.grid || {};
+    const ICON = CFG.icon || {};
+    const DOCK = CFG.dock || {};
+    const PAGER = CFG.pager || {};
+    const WP = CFG.wallpaper || {};
+
+    const stageEl = document.getElementById('stage');
+    const viewportEl = document.getElementById('viewport');
+    const trackEl = document.getElementById('track');
+    const dotsEl = document.getElementById('dots');
+    const dockEl = document.getElementById('dock');
+    const prevBtn = document.getElementById('prev');
+    const nextBtn = document.getElementById('next');
+
+    const NARROW = '(max-width: 560px)';
+    const mq = window.matchMedia(NARROW);
+    const isNarrow = () => mq.matches;
+    // 窄屏有专用值就用窄屏的，否则回退到通用值
+    const pick = (normal, mobile) => (isNarrow() && mobile !== undefined && mobile !== null ? mobile : normal);
+
+    /* ---------------- 把配置写进 CSS 变量 ---------------- */
+    const wallpaperValue = () => {
+        if (WP.image) {
+            const img = "url('" + WP.image + "') center / cover no-repeat";
+            return WP.overlay ? 'linear-gradient(' + WP.overlay + ', ' + WP.overlay + '), ' + img : img;
+        }
+        if (Array.isArray(WP.gradient)) return WP.gradient.join(',');
+        return WP.gradient || '#26325e';
+    };
+
+    const applyTheme = () => {
+        const s = document.documentElement.style;
+        const iconLabel = ICON.label || {};
+        const dockLabel = DOCK.label || {};
+
+        s.setProperty('--wallpaper', wallpaperValue());
+        s.setProperty('--wallpaper-blur', (WP.blur || 0) + 'px');
+
+        s.setProperty('--gap', pick(GRID.gap || '12px', GRID.mobileGap));
+
+        s.setProperty('--tile-size', pick(ICON.size || '64px', ICON.mobileSize));
+        s.setProperty('--tile-font', pick(ICON.fontSize || '34px', ICON.mobileFontSize));
+        s.setProperty('--tile-radius', ICON.radius || '24%');
+        s.setProperty('--tile-shadow', ICON.shadow || 'none');
+        s.setProperty('--tile-inset', ICON.imageInset || '0');
+        s.setProperty('--image-fit', ICON.imageFit || 'contain');
+
+        s.setProperty('--label-size', pick(iconLabel.size || '12px', iconLabel.mobileSize));
+        s.setProperty('--label-color', iconLabel.color || '#ffffff');
+        s.setProperty('--label-shadow', iconLabel.shadow || 'none');
+
+        s.setProperty('--dock-gap', pick(DOCK.gap || '8px', DOCK.mobileGap));
+        s.setProperty('--dock-min', pick(DOCK.minItem || '34px', DOCK.mobileMinItem));
+        s.setProperty('--dock-size', pick(DOCK.size || '34px', DOCK.mobileSize));
+        s.setProperty('--dock-bg', DOCK.background || 'transparent');
+        s.setProperty('--dock-blur', DOCK.blur || '0px');
+        s.setProperty('--dock-radius', DOCK.radius || '26px');
+        s.setProperty('--dock-border', DOCK.border || '0');
+        s.setProperty('--dock-padding', pick(DOCK.padding || '10px 12px', DOCK.mobilePadding));
+        s.setProperty('--dock-margin', DOCK.margin || '16px 0 0');
+        s.setProperty('--dock-label-size', dockLabel.size || '11px');
+    };
+
+    /* ---------------- 图标 ---------------- */
+    // 没写 color 时按名字配一个稳定又不难看的色相
+    const hueOf = (name) => {
+        let hash = 0;
+        for (let i = 0; i < name.length; i += 1) hash = (hash * 31 + name.charCodeAt(i)) % 360;
+        return hash;
+    };
+
+    const tileBackground = (item) => {
+        if (typeof item.color === 'string' && item.color) return item.color;
+        const hue = typeof item.color === 'number' ? item.color : hueOf(item.name);
+        const auto = ICON.autoColor || {};
+        const sat = auto.saturation === undefined ? 70 : auto.saturation;
+        const from = auto.lightnessFrom === undefined ? 64 : auto.lightnessFrom;
+        const to = auto.lightnessTo === undefined ? 44 : auto.lightnessTo;
+        return 'linear-gradient(160deg, hsl(' + hue + ' ' + sat + '% ' + from + '%), hsl(' + hue + ' ' + sat + '% ' + to + '%))';
+    };
+
+    const buildApp = (item, withLabel) => {
+        const a = document.createElement('a');
+        a.className = 'app';
+        a.href = item.url || '#';
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.title = item.name;
+
+        const tile = document.createElement('span');
+        tile.className = 'tile';
+        // fill = 铺满的正方形整图：不用垫底色
+        if (item.fill === true) tile.classList.add('fill');
+        else tile.style.background = tileBackground(item);
+        if (item.radius) tile.style.borderRadius = item.radius;
+        if (item.size) tile.style.width = item.style.height = item.size;
+
+        if (item.img) {
+            const img = document.createElement('img');
+            img.src = item.img;
+            img.alt = item.name;
+            img.loading = 'lazy';
+            img.decoding = 'async';
+            if (item.inset !== undefined) img.style.padding = item.inset;
+            tile.appendChild(img);
+        } else {
+            tile.textContent = item.emoji || '📦';
+        }
+        a.appendChild(tile);
+
+        if (withLabel) {
+            const label = document.createElement('span');
+            label.className = 'label';
+            label.textContent = item.name;
+            a.appendChild(label);
+        }
+        return a;
+    };
+
+    /* ---------------- 翻页 ---------------- */
+    const columnsNow = () => (isNarrow() ? GRID.mobileColumns || GRID.columns : GRID.columns) || 6;
+
+    let pageCount = 1;
+    let current = 0;
+
+    const goTo = (index) => {
+        current = Math.max(0, Math.min(index, pageCount - 1));
+        trackEl.style.transform = 'translateX(' + (-current * 100) + '%)';
+        Array.prototype.forEach.call(dotsEl.children, (dot, i) => dot.classList.toggle('on', i === current));
+        const showArrows = PAGER.arrows !== false && pageCount > 1;
+        prevBtn.hidden = nextBtn.hidden = !showArrows;
+        prevBtn.disabled = current === 0;
+        nextBtn.disabled = current === pageCount - 1;
+        prevBtn.style.opacity = current === 0 ? 0.35 : 1;
+        nextBtn.style.opacity = current === pageCount - 1 ? 0.35 : 1;
+    };
+
+    const render = () => {
+        applyTheme();
+
+        const icons = CFG.icons || [];
+        const columns = columnsNow();
+        const rows = GRID.rows || 4;
+        const perPage = Math.max(1, columns * rows);
+        const pages = [];
+        for (let i = 0; i < icons.length; i += perPage) pages.push(icons.slice(i, i + perPage));
+        if (pages.length === 0) pages.push([]);
+        pageCount = pages.length;
+
+        const withLabel = (ICON.label || {}).show !== false;
+        trackEl.replaceChildren();
+        dotsEl.replaceChildren();
+        pages.forEach((items) => {
+            const page = document.createElement('div');
+            page.className = 'page';
+            page.style.gridTemplateColumns = 'repeat(' + columns + ', minmax(0, 1fr))';
+            items.forEach((item) => page.appendChild(buildApp(item, withLabel)));
+            // 用空位补齐，保证每页一样高，翻页时外层 iframe 不会跳高度
+            for (let i = items.length; i < perPage; i += 1) page.appendChild(document.createElement('span'));
+            trackEl.appendChild(page);
+
+            const dot = document.createElement('span');
+            dot.className = 'dot';
+            dotsEl.appendChild(dot);
+        });
+
+        dotsEl.style.display = PAGER.dots === false || pageCount < 2 ? 'none' : 'flex';
+        goTo(Math.min(current, pageCount - 1));
+    };
+
+    const renderDock = () => {
+        dockEl.replaceChildren();
+        if (DOCK.show === false) {
+            dockEl.style.display = 'none';
+            return;
+        }
+        dockEl.style.display = '';
+        const withLabel = (DOCK.label || {}).show === true;
+        (CFG.dockItems || []).forEach((item) => dockEl.appendChild(buildApp(item, withLabel)));
+        if (DOCK.position === 'top') stageEl.parentNode.insertBefore(dockEl, stageEl);
+        else stageEl.parentNode.appendChild(dockEl);
+    };
+
+    renderDock();
+    render();
+
+    // 栏宽变化（外层 iframe 跟着变宽变窄）时按新的列数和尺寸重排
+    mq.addEventListener('change', () => {
+        current = 0;
+        renderDock();
+        render();
+    });
+
+    prevBtn.addEventListener('click', () => goTo(current - 1));
+    nextBtn.addEventListener('click', () => goTo(current + 1));
+
+    // 触屏左右滑
+    let touchX = null;
+    viewportEl.addEventListener('touchstart', (event) => { touchX = event.touches[0].clientX; }, { passive: true });
+    viewportEl.addEventListener('touchend', (event) => {
+        if (touchX === null) return;
+        const dx = event.changedTouches[0].clientX - touchX;
+        touchX = null;
+        if (Math.abs(dx) > 40) goTo(current + (dx < 0 ? 1 : -1));
+    }, { passive: true });
+}());
+</script>
+</body>
+</html>

@@ -164,7 +164,7 @@ const config = {
               },
               {
                 label: '兔兔的Phira在线服务器',
-                href: 'https://iphira.danieltoyama.fun',
+                href: 'https://iphira.danieluu.top',
               },
             ],
           },
