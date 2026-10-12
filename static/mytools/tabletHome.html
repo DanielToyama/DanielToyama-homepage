@@ -47,7 +47,8 @@
         will-change: transform;
     }
     .page {
-        flex: 0 0 100%;
+        /* 宽度由 JS 写 --page-w：留出 peek 那一条，好让下一页在右边露个边（见 goTo） */
+        flex: 0 0 var(--page-w, 100%);
         display: grid;
         gap: var(--gap, 12px);
         align-content: start;
@@ -131,20 +132,41 @@
     .nav[hidden] { display: none; }
 
     /* ---------- 页码 ---------- */
+    /* 垫一层深色胶囊：白点压在浅色壁纸上根本看不见，对比度不能交给壁纸决定 */
     .dots {
         display: flex;
         justify-content: center;
-        gap: 7px;
-        margin: 14px 0 0;
+        align-items: center;
+        gap: 2px;
+        width: fit-content;
+        margin: 14px auto 0;
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: rgba(18, 24, 46, 0.34);
+        backdrop-filter: blur(6px);
     }
+    /* 圆点是 button（点得到，热区 20x18），看得见的那个圆用 ::before 画 */
     .dot {
+        width: 20px;
+        height: 18px;
+        padding: 0;
+        border: 0;
+        background: none;
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+    }
+    .dot::before {
+        content: '';
         width: 7px;
         height: 7px;
         border-radius: 50%;
-        background: rgba(255, 255, 255, 0.45);
+        background: rgba(255, 255, 255, 0.5);
         transition: background-color 0.2s ease, transform 0.2s ease;
     }
-    .dot.on { background: #fff; transform: scale(1.15); }
+    .dot.on::before { background: #fff; transform: scale(1.15); }
+    .dot:focus-visible { outline: 2px solid rgba(255, 255, 255, 0.85); outline-offset: -2px; }
 
     /* ---------- Dock ---------- */
     .dock {
@@ -163,6 +185,32 @@
     .dock .app { gap: 4px; }
     .dock .tile { width: var(--dock-size, 34px); height: var(--dock-size, 34px); }
     .dock .label { font-size: var(--dock-label-size, 11px); }
+
+    /* ---------- 入场动画 ---------- */
+    /*
+     * 只动 transform / opacity，绝不碰宽高边距 —— 动尺寸会让外层 iframe 量到的高度跟着变
+     * （见文件头第 2 条）。.board-anim 是「待播」状态（图标先藏起来），滚到板子时才加上
+     * .is-playing 开播；脚本里另有兜底，不会出现一直隐身的情况。
+     */
+    .board-anim .app {
+        opacity: 0;
+        transform: translateY(var(--enter-from, 14px)) scale(var(--enter-scale, 0.86));
+    }
+    .board-anim.is-playing .app {
+        animation: tile-in var(--enter-duration, 380ms) cubic-bezier(0.22, 0.9, 0.3, 1.15) both;
+        animation-delay: var(--enter-delay, 0ms);
+    }
+    @keyframes tile-in {
+        from {
+            opacity: 0;
+            transform: translateY(var(--enter-from, 14px)) scale(var(--enter-scale, 0.86));
+        }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .board-anim .app { opacity: 1; transform: none; }
+        .board-anim.is-playing .app { animation: none; }
+    }
 
     @media (max-width: 560px) {
         .nav { display: none; }
@@ -190,6 +238,7 @@
     const ICON = CFG.icon || {};
     const DOCK = CFG.dock || {};
     const PAGER = CFG.pager || {};
+    const ANIM = CFG.anim || {};
     const WP = CFG.wallpaper || {};
 
     const stageEl = document.getElementById('stage');
@@ -247,6 +296,10 @@
         s.setProperty('--dock-padding', pick(DOCK.padding || '10px 12px', DOCK.mobilePadding));
         s.setProperty('--dock-margin', DOCK.margin || '16px 0 0');
         s.setProperty('--dock-label-size', dockLabel.size || '11px');
+
+        s.setProperty('--enter-duration', (ANIM.duration === undefined ? 380 : ANIM.duration) + 'ms');
+        s.setProperty('--enter-from', (ANIM.distance === undefined ? 14 : ANIM.distance) + 'px');
+        s.setProperty('--enter-scale', String(ANIM.scale === undefined ? 0.86 : ANIM.scale));
     };
 
     /* ---------------- TapTap 唤端 ---------------- */
@@ -373,15 +426,127 @@
         return a;
     };
 
+    /* ---------------- 入场动画 ---------------- */
+    /*
+     * 滚到板子这儿的时候让图标依次进场。三个要点：
+     * 1) 只动 transform / opacity，绝不碰宽高边距（见文件头第 2 条）。
+     * 2) iframe 里用默认 root 的 IntersectionObserver，比的是**顶层窗口**的视口，不是 iframe
+     *    自己的，所以不用去够 window.top 就能知道「用户滚到这儿了」。
+     * 3) 图标是 loading="lazy" 的，滚到这儿才开始下载。不等一下的话，动画会在一堆空方块上
+     *    播完，所以先等首页图片就绪（最多 waitImages 毫秒）再开播。
+     */
+    let entered = false;
+
+    const imagesReady = (imgs, cap) => new Promise((resolve) => {
+        const pending = imgs.filter((img) => !img.complete);
+        if (pending.length === 0) return resolve();
+        let left = pending.length;
+        const timer = setTimeout(resolve, cap);
+        const done = () => {
+            left -= 1;
+            if (left <= 0) {
+                clearTimeout(timer);
+                resolve();
+            }
+        };
+        pending.forEach((img) => {
+            img.addEventListener('load', done, { once: true });
+            img.addEventListener('error', done, { once: true });
+        });
+    });
+
+    const playEntrance = () => {
+        if (entered) return;
+        entered = true;
+
+        const stagger = ANIM.stagger === undefined ? 30 : ANIM.stagger;
+        const duration = ANIM.duration === undefined ? 380 : ANIM.duration;
+        const apps = Array.prototype.slice.call(document.querySelectorAll('.app'));
+        // 用「在父节点里的序号」当错开顺序：网格就是格子顺序，dock 是自己的顺序。
+        // 第二页被 overflow 裁掉看不见，让它跟第一页同时开播，别白等一轮。
+        const orderIn = (el) => Array.prototype.indexOf.call(el.parentNode.children, el);
+        const inPage = (app) => !!app.closest('.page');
+        const gridMax = apps.reduce((max, app) => (inPage(app) ? Math.max(max, orderIn(app) * stagger) : max), 0);
+
+        let maxDelay = 0;
+        apps.forEach((app) => {
+            const delay = inPage(app) ? orderIn(app) * stagger : gridMax + stagger + orderIn(app) * stagger;
+            maxDelay = Math.max(maxDelay, delay);
+            app.style.setProperty('--enter-delay', delay + 'ms');
+        });
+
+        document.body.classList.add('is-playing');
+        // 播完把类摘掉，别让几十个元素一直挂着 animation 上下文
+        setTimeout(() => {
+            document.body.classList.remove('board-anim', 'is-playing');
+            apps.forEach((app) => app.style.removeProperty('--enter-delay'));
+        }, maxDelay + duration + 80);
+    };
+
+    const armEntrance = () => {
+        if (ANIM.entrance === false) return;
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+        const threshold = ANIM.threshold === undefined ? 0.25 : ANIM.threshold;
+        const cap = ANIM.waitImages === undefined ? 500 : ANIM.waitImages;
+        const reveal = () => {
+            const imgs = Array.prototype.slice.call(document.querySelectorAll('.page:first-child img'));
+            imagesReady(imgs, cap).then(playEntrance);
+        };
+
+        document.body.classList.add('board-anim');
+        if (typeof IntersectionObserver !== 'function') return reveal();
+
+        const io = new IntersectionObserver((entries) => {
+            if (!entries.some((entry) => entry.isIntersecting)) return;
+            io.disconnect();
+            reveal();
+        }, { threshold });
+        io.observe(document.body);
+
+        // 兜底：observer 万一没按预期触发，图标就一直隐身了。同源时听顶层滚动手动量一次；
+        // 跨源拿不到顶层就只能信 observer。
+        try {
+            const top = window.top;
+            const frame = window.frameElement;
+            if (!top || top === window || !frame) return;
+            const check = () => {
+                // 量的是「iframe 在顶层视口里的位置」，不是自己文档里的位置，两者坐标系不同
+                const rect = frame.getBoundingClientRect();
+                const visible = Math.min(rect.bottom, top.innerHeight) - Math.max(rect.top, 0);
+                if (visible <= rect.height * threshold) return;
+                top.removeEventListener('scroll', check);
+                io.disconnect();
+                reveal();
+            };
+            top.addEventListener('scroll', check, { passive: true });
+        } catch (error) {
+            /* 跨源，够不着顶层 */
+        }
+    };
+
     /* ---------------- 翻页 ---------------- */
     const columnsNow = () => (isNarrow() ? GRID.mobileColumns || GRID.columns : GRID.columns) || 6;
 
     let pageCount = 1;
     let current = 0;
 
+    // 右侧露出下一页的一条边当「还能翻」的暗示；0 = 不露
+    const peekPx = () => {
+        const want = PAGER.peek === undefined ? 22 : PAGER.peek;
+        return pageCount > 1 && want > 0 ? want : 0;
+    };
+
     const goTo = (index) => {
         current = Math.max(0, Math.min(index, pageCount - 1));
-        trackEl.style.transform = 'translateX(' + (-current * 100) + '%)';
+        const peek = peekPx();
+        // 每页宽度固定成 100% - peek，位移也得按这个算，不然翻一页会差一条边
+        document.documentElement.style.setProperty('--page-w', peek > 0 ? 'calc(100% - ' + peek + 'px)' : '100%');
+        trackEl.style.transform = current === 0
+            ? 'translateX(0)'
+            : peek > 0
+                ? 'translateX(calc(' + (-current) + ' * (100% - ' + peek + 'px)))'
+                : 'translateX(' + (-current * 100) + '%)';
         Array.prototype.forEach.call(dotsEl.children, (dot, i) => dot.classList.toggle('on', i === current));
         const showArrows = PAGER.arrows !== false && pageCount > 1;
         prevBtn.hidden = nextBtn.hidden = !showArrows;
@@ -406,7 +571,7 @@
         const withLabel = (ICON.label || {}).show !== false;
         trackEl.replaceChildren();
         dotsEl.replaceChildren();
-        pages.forEach((items) => {
+        pages.forEach((items, pageIndex) => {
             const page = document.createElement('div');
             page.className = 'page';
             page.style.gridTemplateColumns = 'repeat(' + columns + ', minmax(0, 1fr))';
@@ -415,8 +580,12 @@
             for (let i = items.length; i < perPage; i += 1) page.appendChild(document.createElement('span'));
             trackEl.appendChild(page);
 
-            const dot = document.createElement('span');
+            // 页码点做成 button：看得见也点得到
+            const dot = document.createElement('button');
+            dot.type = 'button';
             dot.className = 'dot';
+            dot.setAttribute('aria-label', '第 ' + (pageIndex + 1) + ' 页');
+            dot.addEventListener('click', () => goTo(pageIndex));
             dotsEl.appendChild(dot);
         });
 
@@ -439,6 +608,7 @@
 
     renderDock();
     render();
+    armEntrance();
 
     // 栏宽变化（外层 iframe 跟着变宽变窄）时按新的列数和尺寸重排
     mq.addEventListener('change', () => {
