@@ -19,11 +19,15 @@
  *            字符串 → 直接当 CSS 背景用，例如 '#43b581' 或整段渐变
  *            不写 → 按 name 自动配一个
  *   fill   图片是「不带透明通道的正方形整图」时写 true：铺满整格，不垫底色、不留白边
- *   tapId  TapTap 的 app id。写了它，**手机上**点这个图标会先试着用 URL Scheme 唤起
- *          TapTap App（taptap://taptap.com/app?app_id=<tapId>），2.5 秒内没唤起成功
- *          就退回 url 那个网页；桌面上不折腾，照常新开标签页。
- *          在 TapTap 上有条目的游戏才写，dock 里的应用和自己站点都不用写。
- *          想关掉某个图标的唤端，把 tapId 删掉即可。
+ *   scheme 自己指定唤端用的 URL Scheme，写完整地址，例如 'akicn://mc.kurogame.com/applinks'。
+ *          想在手机上直接唤起 App（而不是绕 TapTap）就用这个，**优先于 tapId**。
+ *          2.5 秒内没唤起成功就退回 url 那个网页；桌面上不折腾，照常新开标签页。
+ *   tapId  TapTap 的 app id，会拼成 taptap://taptap.com/app?app_id=<tapId>。
+ *          没写 scheme 时才用它，行为和上面一样（手机唤端、失败退 url、桌面新开标签页）。
+ *          在 TapTap 上有条目的游戏写它就行，dock 里的应用和自己站点都不用写。
+ *          两个都不写就是普通链接。想关掉某个图标的唤端，把 scheme 和 tapId 都删掉。
+ *          注意 scheme 要单独写在这个字段里，别塞进 url：url 在桌面上是实打实要跳的地址，
+ *          填了自定义 scheme 桌面点下去就是个死链。
  *
  * 关于图标文件（2026-10-12）：
  *   音游图标取自 TapTap 官方图标，dock 里的应用图标取自 App Store（iTunes Search API），
@@ -49,7 +53,7 @@ window.TABLET_HOME = {
         // 压暗/染色一层，让白色的图标名在花哨壁纸上也看得清，例如 'rgba(0,0,0,0.25)'
         overlay: 'rgba(0, 0, 0, 0.02)',
         // 壁纸模糊（px），0 为不模糊。花哨壁纸配 6~12 比较耐看
-        blur: 2
+        blur: 1
     },
 
     /* ---------------- 网格布局 ---------------- */
@@ -126,7 +130,7 @@ window.TABLET_HOME = {
         stagger: 30,      // 相邻图标错开的间隔 ms（dock 接在网格后面一起排）
         distance: 14,     // 起始位置往下偏多少 px
         scale: 0.86,      // 起始缩放到多少
-        threshold: 0.25,  // 板子露出多少比例开始播（0.25 = 露出四分之一）
+        threshold: 0.50,  // 板子露出多少比例开始播（0.25 = 露出四分之一）
         waitImages: 500   // 最多等图标图片加载多久 ms，超时也先播（不然会在空方块上播）
     },
 
@@ -140,7 +144,8 @@ window.TABLET_HOME = {
         { name: '梦想协奏曲！', url: 'https://game.bilibili.com/bangdream/', tapId: 67848, emoji: '🎸', img: '/mytools/icons/band-dream.webp', fill: true, color: 340 },
         { name: 'プロセカ', url: 'https://pjsekai.sega.jp/', emoji: '🎤', img: '/mytools/icons/project-sekai.webp', fill: true, color: 190 },
         { name: 'Orzmic', url: 'https://www.taptap.cn/app/194778', tapId: 194778, emoji: '⬡', img: '/mytools/icons/orzmic.webp', fill: true, color: 258 },
-        { name: '鸣潮', url: 'http://mc.kurogames.com/',  img: '/mytools/icons/wuthering-waves.webp', fill: true, color: 195 },
+        // 鸣潮：手机上用官方 App 的 scheme 直接唤起，唤不起来才退官网
+        { name: '鸣潮', url: 'http://mc.kurogames.com/', scheme: 'akicn://mc.kurogame.com/applinks', img: '/mytools/icons/wuthering-waves.webp', fill: true, color: 195 },
         { name: 'Malody', url: 'https://m.mugzone.net/', tapId: 10115, emoji: '🎲', img: '/mytools/icons/malody.webp', fill: true, color: 260 },
         { name: 'MuseDash', url: 'https://musedash.peropero.net/', tapId: 60809, emoji: '💘', img: '/mytools/icons/musedash.webp', fill: true, color: 330 },
         { name: '调律诗篇', url: 'https://www.taptap.cn/app/14118', tapId: 14118, emoji: '🔄', img: '/mytools/icons/lanota.webp', fill: true, color: 200 },
@@ -151,8 +156,8 @@ window.TABLET_HOME = {
         { name: 'AstroDX', url: 'https://wiki.astrodx.com/cn', emoji: '🌟', img: '/mytools/icons/astrodx.webp', fill: true, color: 35 },
         { name: '节奏大师', url: 'https://da.qq.com/', tapId: 7057, emoji: '🎧', img: '/mytools/icons/jiezou-dashi.webp', fill: true, color: 210 },
         { name: '异环', url: 'https://yh.wanmei.com/index.html', img: '/mytools/icons/nte.webp', fill: true, color: 195 },
-        { name: 'Milthm', url: 'https://milthm.com/', tapId: 301888, emoji: '🌙', img: '/mytools/icons/milthm.webp', fill: true, color: 285 },
-        { name: 'Minecraft', url: 'https://www.minecraft.net/', tapId: 43639, emoji: '⛏️', img: '/mytools/icons/minecraft.webp', fill: true, color: 100 },
+        { name: 'Milthm', url: 'https://milthm.com/', scheme: 'milthm://songlist/', tapId: 301888, emoji: '🌙', img: '/mytools/icons/milthm.webp', fill: true, color: 285 },
+        { name: 'Minecraft', url: 'https://www.minecraft.net/',scheme: 'minecraft://', tapId: 43639, emoji: '⛏️', img: '/mytools/icons/minecraft.webp', fill: true, color: 100 },
         { name: 'Arcaea', url: 'https://arcaea.lowiro.com/', emoji: '💠', img: '/mytools/icons/arcaea.webp', fill: true, color: 195 },
         { name: 'hololive Dreams', url: 'https://www.hololive-dreams.com/en', emoji: '💫', img: '/mytools/icons/hololive-dreams.webp', fill: true, color: 330 },
         { name: '同步音律', url: 'https://www.taptap.cn/app/6908', tapId: 6908, emoji: '🎼', img: '/mytools/icons/musynx.webp', fill: true, color: 260 },
@@ -190,11 +195,11 @@ window.TABLET_HOME = {
      * 不想要这种带活动横幅的，自己换张图填 img 就行。 */
     dockItems: [
 
-        { name: 'QQ', url: 'https://im.qq.com/', emoji: '🐧', img: '/mytools/icons/qq.webp', fill: true, color: 205 },
-        { name: '微信', url: 'https://weixin.qq.com/', emoji: '💬', img: '/mytools/icons/wechat.webp', fill: true, color: 130 },
+        { name: 'QQ', url: 'https://im.qq.com/', echeme: 'mqq://', emoji: '🐧', img: '/mytools/icons/qq.webp', fill: true, color: 205 },
+        { name: '微信', url: 'https://weixin.qq.com/', scheme: 'weixin://', emoji: '💬', img: '/mytools/icons/wechat.webp', fill: true, color: 130 },
         { name: 'QQ音乐', url: 'https://y.qq.com/', emoji: '💬', img: '/mytools/icons/yqq.webp', fill: true, color: 130 },
         { name: 'Edge', url: 'https://www.bing.com/', emoji: '🌐', img: '/mytools/icons/edge.webp', fill: true, color: 200 },
-        { name: 'bilibili', url: 'https://www.bilibili.com/', emoji: '📺', img: '/mytools/icons/bilibili.webp', fill: true, color: 330 },
-        { name: 'GitHub', url: 'https://github.com/', emoji: '🐙', img: '/mytools/icons/github.webp', fill: true, color: 260 }
+        { name: 'bilibili', url: 'https://space.bilibili.com/1333478733', emoji: '📺', img: '/mytools/icons/bilibili.webp', fill: true, color: 330 },
+        { name: 'GitHub', url: 'https://github.com/DanielToyama/', emoji: '🐙', img: '/mytools/icons/github.webp', fill: true, color: 260 }
     ]
 };

@@ -62,6 +62,8 @@ Phigros15.81/Orzmic13.278/Malody5Dan/Rotaeno16.545
 
 <ResponsiveIframe src="/mytools/tabletHome.html" title="兔兔的板子" />
 
+>_这是什么，兔兔的设备？点一点，划一划！_
+
 主要玩的音游其实就几个，不过有了其他的新音游也会第一时间去体验
 
 ## 技术爱好者

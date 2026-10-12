@@ -302,18 +302,21 @@
         s.setProperty('--enter-scale', String(ANIM.scale === undefined ? 0.86 : ANIM.scale));
     };
 
-    /* ---------------- TapTap 唤端 ---------------- */
+    /* ---------------- 唤端 ---------------- */
     /*
-     * 写了 tapId 的图标（= 在 TapTap 上有条目的游戏），在手机上点击时先试着用 URL Scheme
-     * 唤起 TapTap App；2.5 秒内页面没被切到后台（说明没唤起成功）就退回 url 那个网页。
+     * 手机上点图标时，按 scheme → tapId → url 的顺序尝试：
+     *   scheme  自己写一个完整的 URL Scheme（例如 'musedash://'），写了就优先用它
+     *   tapId   在 TapTap 上有条目就写 app id，会拼成 taptap://taptap.com/app?app_id=<tapId>
+     *   都没有  当普通链接用
+     * 用了 scheme / tapId 时，2.5 秒内页面没被切到后台（说明没唤起成功）就退回 url 那个网页。
      *
      * 两个坑：
-     * 1) 只在手机 UA 上这么做。桌面上 taptap:// 没人处理，白等 2.5 秒才跳转，反而变慢。
+     * 1) 只在手机 UA 上这么做。桌面上自定义 scheme 没人处理，白等 2.5 秒才跳转，反而变慢。
      * 2) 自定义 scheme 必须由顶层窗口发起：在 iframe 里改自己的 location 会被浏览器拦掉。
      *    本页和站点同源，所以能直接操作 window.top；万一以后被跨源内嵌，就退回自己（够不着也只能这样）。
      */
     const TAP_SCHEME = 'taptap://taptap.com/app?app_id=';
-    const TAP_WAIT = 2500;
+    const SCHEME_WAIT = 2500;
 
     const isMobile = () =>
         /Android|iPhone|iPad|iPod|Mobile|HarmonyOS/i.test(navigator.userAgent) ||
@@ -328,7 +331,14 @@
         return window;
     };
 
-    const openInTapTap = (tapId, fallbackUrl) => {
+    // 这个图标该用哪个 scheme 唤起；没有就返回 null（当普通链接处理）
+    const schemeFor = (item) => {
+        if (item.scheme) return item.scheme;
+        if (item.tapId) return TAP_SCHEME + item.tapId;
+        return null;
+    };
+
+    const openWithScheme = (schemeUrl, fallbackUrl) => {
         const target = topWindow();
         const doc = target.document;
         let opened = false;
@@ -356,9 +366,9 @@
             // 这里不能用新开标签页（window.open / 合成 a[target=_blank] 点击）——手机浏览器
             // 对「没有用户手势的定时器里开窗口」拦得很死，实测会被弹窗拦截。
             if (!opened) target.location.href = fallbackUrl;
-        }, TAP_WAIT);
+        }, SCHEME_WAIT);
 
-        target.location.href = TAP_SCHEME + tapId;
+        target.location.href = schemeUrl;
     };
 
     /* ---------------- 图标 ---------------- */
@@ -385,11 +395,13 @@
         a.href = item.url || '#';
         a.title = item.name;
 
-        if (item.tapId && isMobile()) {
-            // 手机上走唤端，所以不要新开标签页，链接本身留着（长按/复制链接还是网页版）
+        // 手机上能唤起 App 的（写了 scheme 或 tapId）拦截点击走唤端，其余当普通链接
+        const wake = isMobile() ? schemeFor(item) : null;
+        if (wake) {
+            // 不新开标签页，链接本身留着（长按/复制链接还是网页版）
             a.addEventListener('click', (event) => {
                 event.preventDefault();
-                openInTapTap(item.tapId, item.url);
+                openWithScheme(wake, item.url);
             });
         } else {
             a.target = '_blank';
