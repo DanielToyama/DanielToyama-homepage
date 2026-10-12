@@ -18,22 +18,15 @@ import Spoiler from '@site/src/components/Spoiler';
 
 import ResponsiveIframe from '@site/src/components/ResponsiveIframe';
 
+import NetEasePlayer from '@site/src/components/NetEasePlayer';
+
 # 关于兔兔
 
 欢迎你的来访！我是Daniel_兔兔/DanielLin/户山兔兔！音游人/技术爱好者/二次元
 
 ## 音游人
 
-<iframe
-    frameborder="no"
-    border="0"
-    marginwidth="0"
-    marginheight="0"
-    width="40%"
-    height="110"
-    style={{ minWidth: '260px', maxWidth: '100%' }}
-    src="//music.163.com/outchain/player?type=2&id=1818777226&auto=0&height=90">
-</iframe>
+<NetEasePlayer id="1818777226" />
 
 Phigros15.81/Orzmic13.278/Malody5Dan/Rotaeno16.545
 
