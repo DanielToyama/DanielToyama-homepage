@@ -3,6 +3,20 @@
 在 `static/mytools/tabletHome.config.js` 的 `icons` / `dockItems` 里，把 `img` 写成
 `/mytools/icons/文件名.webp` 就会用这张图；`img: ''` 则回退到 `emoji`。
 
+## 加图标：丢个链接就行
+
+```bash
+npm run add-icon -- phigros=https://img-tc.tapimg.com/market/images/xxx.png/_tap_appicon.jpg
+npm run add-icon -- 名字=链接 名字2=链接2        # 一次多个
+npm run add-icon -- https://xxx/logo.png mylogo  # 名字写在后面也行
+npm run add-icon -- ./下载/logo.png mylogo       # 本地文件也可以
+```
+
+脚本在 `scripts/add-icon.mjs`，会自动：保留透明通道、源图比 180 小就不放大、
+非方形图用透明补成正方形、算透明占比并给出「要不要写 `fill`」的建议，
+最后打印一行能直接粘进配置的 `{ name, url, emoji, img, fill, color }`。
+只依赖 ffmpeg / ffprobe（已在 PATH 里）。
+
 ## 当前已有的文件（34 个，共 376KB，都是 180×180 webp）
 
 | 来源 | 文件 | 说明 |
