@@ -51,7 +51,7 @@ div#index-page-main {
 div#index-page-main * {
     margin: 5px;
 }
-div#index-page-main #logo span{
+div#index-page-main #logo h1{
 font-size: 50px;
 }
 div#index-page-main #logo {

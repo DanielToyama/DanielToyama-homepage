@@ -1,5 +1,6 @@
 ---
 sidebar_position: 3
+description: 用来让各种 App 内置 webview 跳到任意网址的小工具，另外附带「WebView 诊断」和「桥调用台」：可以枚举 App 注入到页面上的原生对象，列出并调用它们暴露的方法。
 ---
 
 import ResponsiveIframe from '@site/src/components/ResponsiveIframe';

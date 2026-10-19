@@ -188,8 +188,12 @@ export default function HomePage() {
 
 
 
+    // title 会被 Docusaurus 拼成「音游人 / 技术爱好者 / 二次元的个人小站 | Daniel兔兔の小家」。
+    // 不传的话整页标题就只有站名，太短，搜索引擎那边会提示。
     return (
-        <Layout description="户山兔兔のBlog站，兔兔的小站，户山兔兔，兔兔，DanielToyama">
+        <Layout
+            title="Daniel兔兔个人小站"
+            description="Daniel兔兔（户山兔兔）的个人小站：作为音游人的日常，QQ 机器人雪绘、Ksmbot 和 Sparkbridge 的开发记录，还有一批小工具与日常随笔。">
             <head>
                 <meta name="baidu-site-verification" content="codeva-diMaIqZTcx" />
             </head>
@@ -209,7 +213,8 @@ export default function HomePage() {
                 {/* 主体内容 */}
                 <div id="index-page-main">
                     <div id="logo">
-                        <span>兔兔的小窝</span>
+                        {/* 用 h1 而不是 span：整页得有个一级标题，样式在 index.css 里按 #logo h1 给 */}
+                        <h1>兔兔的小窝</h1>
                     </div>
 
                     <div id="index-page-description">

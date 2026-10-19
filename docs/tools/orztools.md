@@ -1,5 +1,6 @@
 ---
 sidebar_position: 2
+description: 把 Orzmic 的二维码转换成 Orzmic 定数数组可读的 Excel 的小工具。查分器普及之前，整理谱面定数基本靠它，现在有了自己的查分 Bot，这个 Excel 工具也就功成身退了。
 ---
 
 import ResponsiveIframe from '@site/src/components/ResponsiveIframe';

@@ -13,10 +13,10 @@ const config = {
   tagline: '可爱就是正确！',
   favicon: 'img/favicon.ico',
 
-  // Set the production url of your site here
-  url: 'https://DanielToyama.github.io',
-  // Set the /<baseUrl>/ pathname under which your site is served
-  // For GitHub pages deployment, it is often '/<projectName>/'
+  // 站点的正式地址。sitemap、canonical、og:url 全按它生成，
+  // 所以必须是线上真正在用的域名（Cloudflare Pages 上的 danieluu.top）。
+  // 之前这里留着 GitHub Pages 的地址，结果生成的 sitemap 里所有链接都指向 github.io。
+  url: 'https://danieluu.top',
   baseUrl: '/',
 
   // GitHub pages deployment config.
@@ -27,7 +27,12 @@ const config = {
   trailingSlash: false,
 
   onBrokenLinks: 'throw',
-  onBrokenMarkdownLinks: 'warn',
+  // 3.8 起 onBrokenMarkdownLinks 从顶层挪到了 markdown.hooks 下面，顶层那个 v4 会删掉
+  markdown: {
+    hooks: {
+      onBrokenMarkdownLinks: 'warn',
+    },
+  },
 
   // Even if you don't use internationalization, you can use this field to set
   // useful metadata like html lang. For example, if your site is Chinese, you
@@ -49,10 +54,29 @@ const config = {
 
         },
         blog: {
+          // blogTitle / blogDescription 只用在 /blog 这一页的 <title> 和 meta description 上，
+          // 不会当成可见标题渲染出来（侧边栏标题是下面那个 blogSidebarTitle），所以可以写长一点。
+          blogTitle: '兔兔的博客 —— 音游、bot开发与日常折腾',
+          blogDescription:
+            '兔兔的博客，记录音游打歌、QQ 机器人与群服开发、网页小工具折腾和日常随笔。从maimai、Orzmic 到 OneBot ',
           blogSidebarTitle: '最近有什么呢',
           blogSidebarCount: 10,
           showReadingTime: true,
 
+        },
+        // 自动生成 sitemap.xml。@docusaurus/plugin-sitemap 是随 preset-classic 一起装好的，
+        // 不写这段也会生成，这里只是把参数显式写出来好调。
+        // 地址前缀取上面的 url，改域名别忘了改那里。
+        sitemap: {
+          filename: 'sitemap.xml',
+          // lastmod 取源文件最后一次 git 提交的时间；取不到就不写这一项，不会报错
+          lastmod: 'date',
+          // 这两个 Google 早就不看了（Docusaurus 自己注释说 v4 会删掉），留着不影响
+          changefreq: 'weekly',
+          priority: 0.5,
+          // 不进 sitemap 的路由：标签页、归档页、翻页都是文章列表的重复内容。
+          // 想让它们也进 sitemap，把对应那行删掉即可。
+          ignorePatterns: ['/blog/tags/**', '/blog/archive', '/blog/page/**'],
         },
         theme: {
           customCss: './src/css/custom.css',

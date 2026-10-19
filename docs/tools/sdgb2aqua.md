@@ -1,5 +1,6 @@
 ---
 sidebar_position: 1
+description: 把舞萌（Sega 系音游）国服数据转换成 Aqua 服务器可读格式的工具，支持从麦当劳机器人、落雪、水鱼、dxrating 等多个来源导入数据，附各个来源的具体操作步骤。
 ---
 
 import IframeWithDynamicSrc from '@site/src/components/IframeWithDynamicSrc';

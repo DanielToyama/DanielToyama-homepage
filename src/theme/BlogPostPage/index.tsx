@@ -1,17 +1,27 @@
 import React, { type ReactNode } from 'react';
 import clsx from 'clsx';
 import { HtmlClassNameProvider, ThemeClassNames } from '@docusaurus/theme-common';
-import { BlogPostProvider, useBlogPost } from '@docusaurus/theme-common/internal';
+import {
+  BlogPostProvider,
+  useBlogPost,
+} from '@docusaurus/plugin-content-blog/client';
 import BlogLayout from '@theme/BlogLayout';
 import BlogPostItem from '@theme/BlogPostItem';
 import BlogPostPaginator from '@theme/BlogPostPaginator';
 import BlogPostPageMetadata from '@theme/BlogPostPage/Metadata';
 import BlogPostPageStructuredData from '@theme/BlogPostPage/StructuredData';
 import TOC from '@theme/TOC';
+import ContentVisibility from '@theme/ContentVisibility';
 import type { Props } from '@theme/BlogPostPage';
-import Unlisted from '@theme/Unlisted';
 import type { BlogSidebar } from '@docusaurus/plugin-content-blog';
 import Comment from '@site/src/components/Comment';
+
+/*
+ * swizzle 自 @docusaurus/theme-classic 的 BlogPostPage，跟到 3.10.2。
+ * 相对原版只多两处：文章底部挂 giscus 评论，以及 hide_comment front matter 开关。
+ * 升级 Docusaurus 时记得拿新版本的原文件（node_modules/@docusaurus/theme-classic/lib/theme/BlogPostPage/index.js）
+ * 对一遍，原版改过 import 路径或新增组件（比如 3.5 起用 ContentVisibility 替掉了 Unlisted）时这里要跟着改。
+ */
 function BlogPostPageContent({
   sidebar,
   children,
@@ -20,7 +30,7 @@ function BlogPostPageContent({
   children: ReactNode;
 }): JSX.Element {
   const { metadata, toc } = useBlogPost();
-  const { nextItem, prevItem, frontMatter, unlisted } = metadata;
+  const { nextItem, prevItem, frontMatter } = metadata;
   const {
     hide_table_of_contents: hideTableOfContents,
     toc_min_heading_level: tocMinHeadingLevel,
@@ -39,7 +49,7 @@ function BlogPostPageContent({
           />
         ) : undefined
       }>
-      {unlisted && <Unlisted />}
+      <ContentVisibility metadata={metadata} />
 
       <BlogPostItem>{children}</BlogPostItem>
 

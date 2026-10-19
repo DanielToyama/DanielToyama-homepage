@@ -45,3 +45,12 @@
   border: 0;
 }
 
+/*
+ * 文档标题为了 SEO 写长了（见各文档的 title / sidebar_label），长标题在窄屏上会折行。
+ * text-wrap: balance 让折出来的几行长度尽量均匀，不然会出现「技术爱 / 好者」这种
+ * 从词中间断开的难看情况。不认识的浏览器会直接忽略这条，不影响别的。
+ */
+.theme-doc-markdown h1 {
+  text-wrap: balance;
+}
+

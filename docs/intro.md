@@ -1,5 +1,10 @@
 ---
 sidebar_position: 1
+# 标题写全一点：它是页面的 h1，也是 <title>（Docusaurus 会自动补上「| Daniel兔兔の小家」）。
+# 侧边栏/面包屑用 sidebar_label，保持短的，不然导航里会挤成一长条。
+title: 关于Daniel兔兔-我的自我介绍？
+sidebar_label: 关于兔兔
+description: Daniel兔兔（户山兔兔）的自我介绍：作为音游人，QQ 机器人雪绘与 Ksmbot 的开发，以及这个小站上都放了些什么。
 ---
 
 
@@ -19,8 +24,6 @@ import Spoiler from '@site/src/components/Spoiler';
 import ResponsiveIframe from '@site/src/components/ResponsiveIframe';
 
 import NetEasePlayer from '@site/src/components/NetEasePlayer';
-
-# 关于兔兔
 
 欢迎你的来访！我是Daniel_兔兔/DanielLin/户山兔兔！音游人/技术爱好者/二次元
 

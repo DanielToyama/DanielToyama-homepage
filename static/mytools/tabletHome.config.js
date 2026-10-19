@@ -195,7 +195,7 @@ window.TABLET_HOME = {
      * 不想要这种带活动横幅的，自己换张图填 img 就行。 */
     dockItems: [
 
-        { name: 'QQ', url: 'https://im.qq.com/', echeme: 'mqq://', emoji: '🐧', img: '/mytools/icons/qq.webp', fill: true, color: 205 },
+        { name: 'QQ', url: 'https://im.qq.com/', scheme: 'mqq://', emoji: '🐧', img: '/mytools/icons/qq.webp', fill: true, color: 205 },
         { name: '微信', url: 'https://weixin.qq.com/', scheme: 'weixin://', emoji: '💬', img: '/mytools/icons/wechat.webp', fill: true, color: 130 },
         { name: 'QQ音乐', url: 'https://y.qq.com/', emoji: '💬', img: '/mytools/icons/yqq.webp', fill: true, color: 130 },
         { name: 'Edge', url: 'https://www.bing.com/', emoji: '🌐', img: '/mytools/icons/edge.webp', fill: true, color: 200 },

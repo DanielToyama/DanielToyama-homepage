@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# sitemap 由 @docusaurus/plugin-sitemap 在构建时生成，配置见 docusaurus.config.js 的 sitemap 段
+Sitemap: https://danieluu.top/sitemap.xml
