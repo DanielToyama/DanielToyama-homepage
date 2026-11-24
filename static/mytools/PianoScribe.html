@@ -208,6 +208,8 @@
         <option value="soft" selected>柔和</option>
         <option value="bright">明亮</option>
       </select>
+      <span class="hint">混响</span>
+      <input type="range" id="reverbSlider" min="0" max="1" step="0.02" value="0.28" oninput="setReverb(this.value)" style="width:70px" title="混响湿度（0 = 干声，1 = 潮湿）">
       <button class="btn sound-btn active" onclick="toggleSound()">🔊 声音</button>
       <button class="btn" onclick="exportJson()">⬇ 导出</button>
       <button class="btn" onclick="document.getElementById('importFile').click()">⬆ 导入</button>
@@ -241,7 +243,7 @@
     </div>
     <div class="footer">
       提示：本页需处于焦点状态才能记录。同时按下两个键会记成<span style="color:var(--pink)">和弦</span>（高音在上、上下两行对齐）。
-      键盘 <span class="kbd">Backspace</span> 退格、<span class="kbd">Enter</span> 换行、<span class="kbd">空格</span> 插入 | 分隔。▶ 播放可回放你弹的内容，🔊 弹奏时自动发声。点击谱面音符可修改/插入/删除。
+      键盘 <span class="kbd">Backspace</span> 退格、<span class="kbd">Enter</span> 换行、<span class="kbd">空格</span> 插入 | 分隔。▶ 播放可回放你弹的内容，🔊 弹奏时自动发声，混响滑块可调节空间感。点击谱面音符可修改/插入/删除。
     </div>
   </div>
 
@@ -315,15 +317,28 @@
   let audioCtx = null;
   let soundOn = true;
   let currentTone = 'soft';   // 当前音色：warm / soft / bright
+  let reverbLevel = 0.28;     // 混响湿度（0~1）
 
-  // 音色预设：控制泛音、亮度、衰减
+  // 音色预设：钢琴音色的三个侧面
+  //  gamma      泛音强度衰减指数（越大越温暖、越暗）
+  //  unison     同度弦失谐量（音分）→ 拍频带来的厚度
+  //  t60        余音长度倍率
+  //  hammer     琴槌击弦噪声强度
+  //  hammerFreq 击弦噪声中心频率基准（Hz）
+  //  air        单音低通截止频率倍率（越大越明亮）
   const TONES = {
-    warm:   { harmonics: [[1,1.0],[2,0.20],[3,0.08],[4,0.04]],   filter: 5, decay: 1.9, attack: 0.012 },
-    soft:   { harmonics: [[1,1.0],[2,0.28],[3,0.13],[4,0.06],[5,0.03],[6,0.02]], filter: 1, decay: 1.8, attack: 0.008 },
-    bright: { harmonics: [[1,1.0],[2,0.35],[3,0.18],[4,0.10],[5,0.06]],          filter: 12, decay: 1.5, attack: 0.006 },
+    warm:   { gamma: 1.58, unison: 1.4, t60: 1.12, hammer: 0.24, hammerFreq: 1900, air: 0.80 },
+    soft:   { gamma: 1.16, unison: 1.9, t60: 1.00, hammer: 0.40, hammerFreq: 3000, air: 1.00 },
+    bright: { gamma: 0.88, unison: 2.5, t60: 0.88, hammer: 0.55, hammerFreq: 4200, air: 1.25 },
   };
   function setTone(name) {
     if (TONES[name]) currentTone = name;
+  }
+  function setReverb(v) {
+    reverbLevel = Math.max(0, Math.min(1, parseFloat(v) || 0));
+    if (wetGain && audioCtx) {
+      wetGain.gain.setTargetAtTime(reverbLevel, audioCtx.currentTime, 0.05);
+    }
   }
   const baseFreq = 261.63; // 中音 do = C4
   // 每个八度/音级的频率（相对中音 do 的倍率）
@@ -342,6 +357,7 @@
     soundOn = !soundOn;
     document.querySelector('.sound-btn').classList.toggle('active', soundOn);
     if (soundOn) ensureAudio();   // 用户手势内解锁音频
+    else stopAllVoices();         // 关掉声音时让余音立即止住
   }
 
   // ---------- 回放 ----------
@@ -352,13 +368,15 @@
   }
   function playBack() {
     if (!soundOn) { alert('请先开启声音（点一下 🔊 声音 按钮）'); return; }
-    ensureAudio();
+    const ctx = ensureAudio();
     // 清除之前的回放
     playbackTimers.forEach(clearTimeout);
     playbackTimers = [];
+    stopAllVoices();
     const noteEntries = entries.filter(e => e.type === 'note');
     if (noteEntries.length === 0) { alert('还没有记录的音符'); return; }
     const beat = parseFloat(document.getElementById('delaySlider').value);   // 每个音符间隔（秒）
+    const audioStart = ctx.currentTime + 0.08;   // 提前 80ms 排程，节奏更稳
     // 起始位置：优先从编辑选中的音符处开始
     let startEntry = null;
     if (editEntry && editEntry.type === 'note') {
@@ -383,13 +401,14 @@
         t += beat * 1.5;   // 换行处停顿 1.5 倍
         return;
       }
+      const at = t;   // 固定本组音符的时间点（闭包里不能再用会变化的 t）
       e.notes.forEach(n => {
         const timer = setTimeout(() => {
-          playNote(n);
+          playNote(n, audioStart + at);
           // 播放指示：高亮当前音符
           document.querySelectorAll('.entry.playing').forEach(el => el.classList.remove('playing'));
           if (e._el) e._el.classList.add('playing');
-        }, t * 1000);
+        }, at * 1000);
         playbackTimers.push(timer);
       });
       t += beat;
@@ -409,47 +428,232 @@
   function stopPlayback() {
     playbackTimers.forEach(clearTimeout);
     playbackTimers = [];
+    stopAllVoices();
     const btn = document.querySelector('.play-btn');
     btn.textContent = '▶ 播放';
     btn.onclick = playBack;
     document.querySelectorAll('.entry.playing').forEach(el => el.classList.remove('playing'));
   }
-  function playNote(n) {
-    if (!soundOn) return;
+  // ---------- 钢琴合成 ----------
+  // 用加法合成逼近真实钢琴，而不是简单的正弦叠加：
+  //  · 非谐性泛音：琴弦有刚度，泛音比整数倍略高 → f_n = n·f0·√(1+B·n²)
+  //  · 击弦点梳状滤波：琴槌击在弦长约 1/8 处，第 8、16… 次泛音被削弱
+  //  · 同度弦失谐：每个音 2~3 根弦微微失谐，产生自然的拍频与厚度
+  //  · 分层衰减：高次泛音比基音衰减快 → 音头明亮、余音温暖
+  //  · 琴槌噪声、音板共鸣 EQ、立体声定位、卷积混响
+  const SEMIS = [0, 2, 4, 5, 7, 9, 11];
+  const MAX_VOICES = 24;
+
+  let pianoBus = null, wetGain = null, noiseBuf = null;
+  const activeVoices = [];
+
+  // 合成一段温暖的立体声混响脉冲响应
+  function makeReverbIR(ctx) {
+    const rate = ctx.sampleRate;
+    const len = Math.floor(rate * 2.4);
+    const buf = ctx.createBuffer(2, len, rate);
+    for (let ch = 0; ch < 2; ch++) {
+      const d = buf.getChannelData(ch);
+      let lp1 = 0, lp2 = 0;
+      for (let i = 0; i < len; i++) {
+        const white = Math.random() * 2 - 1;
+        lp1 = lp1 * 0.60 + white * 0.40;      // 两级低通，尾音更柔
+        lp2 = lp2 * 0.35 + lp1 * 0.65;
+        const x = i / len;
+        const fadeIn = Math.min(1, i / (rate * 0.015));
+        d[i] = lp2 * Math.pow(1 - x, 2.7) * fadeIn;
+      }
+    }
+    return buf;
+  }
+
+  function getNoiseBuffer(ctx) {
+    if (noiseBuf && noiseBuf.sampleRate === ctx.sampleRate) return noiseBuf;
+    noiseBuf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.3), ctx.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    return noiseBuf;
+  }
+
+  function buildPianoBus() {
+    const ctx = ensureAudio();
+    if (pianoBus) return pianoBus;
+
+    pianoBus = ctx.createGain();
+    pianoBus.gain.value = 0.85;
+
+    // 音板 / 琴体共鸣
+    const hp = ctx.createBiquadFilter();
+    hp.type = 'highpass'; hp.frequency.value = 36; hp.Q.value = 0.6;
+    const body = ctx.createBiquadFilter();
+    body.type = 'peaking'; body.frequency.value = 185; body.Q.value = 1.0; body.gain.value = 3.0;
+    const presence = ctx.createBiquadFilter();
+    presence.type = 'peaking'; presence.frequency.value = 2400; presence.Q.value = 0.9; presence.gain.value = 2.2;
+    const air = ctx.createBiquadFilter();
+    air.type = 'lowpass'; air.frequency.value = 14500; air.Q.value = 0.4;
+
+    // 卷积混响（冲激响应由噪声合成）
+    const conv = ctx.createConvolver();
+    conv.buffer = makeReverbIR(ctx);
+    wetGain = ctx.createGain();
+    wetGain.gain.value = reverbLevel;
+
+    // 轻微压缩，避免和弦叠音削波
+    const comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -14;
+    comp.knee.value = 20;
+    comp.ratio.value = 3.5;
+    comp.attack.value = 0.004;
+    comp.release.value = 0.25;
+
+    pianoBus.connect(hp);
+    hp.connect(body); body.connect(presence); presence.connect(air);
+    air.connect(comp);                 // 干声
+    air.connect(conv);                 // 混响支路
+    conv.connect(wetGain); wetGain.connect(comp);
+    comp.connect(ctx.destination);
+    return pianoBus;
+  }
+
+  function stopVoice(v, fadeSec) {
+    if (!v || v.dead) return;
+    v.dead = true;
     const ctx = ensureAudio();
     const t = ctx.currentTime;
-    const f = freqOf(n);
-    const tone = TONES[currentTone] || TONES.soft;
-    // 音越高，衰减越快（高音更短促明亮）
-    const bright = 1 + (n.oct - 1) * 0.10;
-    const master = ctx.createGain();
-    master.gain.value = 1;
-    // 主包络：快速起音 → 快速衰减 → 慢速拖尾（悦耳的衰减曲线）
-    master.gain.setValueAtTime(0.0001, t);
-    master.gain.exponentialRampToValueAtTime(0.75, t + tone.attack);
-    master.gain.exponentialRampToValueAtTime(0.32, t + 0.18 * bright);
-    master.gain.exponentialRampToValueAtTime(0.0001, t + tone.decay * bright);
-    // 低通滤波：软化高频，保持通透
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.value = Math.min(12000, f * tone.filter);
-    filter.Q.value = 0.3;
-    tone.harmonics.forEach(h => {
-      const osc = ctx.createOscillator();
-      const g = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.value = f * h[0];
-      // 每个泛音独立包络：高频泛音衰减更快（更自然）
-      g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(h[1] * 0.7, t + tone.attack);
-      g.gain.exponentialRampToValueAtTime(h[1] * 0.0001, t + (tone.decay - h[0] * 0.2) * bright);
-      osc.connect(g);
-      g.connect(filter);
-      osc.start(t);
-      osc.stop(t + 2.0);
+    const fade = fadeSec || 0.12;
+    const g = v.gain.gain;
+    if (g.cancelAndHoldAtTime) g.cancelAndHoldAtTime(t);
+    else g.cancelScheduledValues(t);
+    g.setTargetAtTime(0.0001, t, fade / 3);
+    v.oscs.forEach(o => { try { o.stop(t + fade + 0.02); } catch (e) { /* 已停止 */ } });
+  }
+
+  function stopAllVoices() {
+    activeVoices.forEach(v => stopVoice(v, 0.15));
+    activeVoices.length = 0;
+  }
+
+  function pruneVoices() {
+    if (!audioCtx) return;
+    const now = audioCtx.currentTime;
+    for (let i = activeVoices.length - 1; i >= 0; i--) {
+      if (activeVoices[i].end <= now || activeVoices[i].dead) activeVoices.splice(i, 1);
+    }
+  }
+
+  // n: {oct, deg}；when: 可选的 AudioContext 绝对时间（回放时保证节奏精准）
+  function playNote(n, when) {
+    if (!soundOn) return;
+    const ctx = ensureAudio();
+    const bus = buildPianoBus();
+    const preset = TONES[currentTone] || TONES.soft;
+    const now = ctx.currentTime;
+    const t = (typeof when === 'number' && when > now) ? when : now + 0.004;
+
+    const f0 = freqOf(n);
+    const midi = 60 + (n.oct - 1) * 12 + SEMIS[n.deg - 1];
+
+    // 复音管理：节点太多时停掉最早的音
+    pruneVoices();
+    if (activeVoices.length >= MAX_VOICES) stopVoice(activeVoices.shift(), 0.08);
+
+    // 非谐性系数：低音弦长而软，高音弦短而硬
+    const B = 0.0001 * Math.pow(2, (midi - 48) / 12);
+
+    // 低音需要更多泛音才有厚度，高音则少一些以控制开销
+    const maxP = f0 < 180 ? 26 : (f0 < 330 ? 22 : 18);
+
+    const parts = [];
+    let sumSq = 0;
+    for (let i = 1; i <= maxP; i++) {
+      const f = i * f0 * Math.sqrt(1 + B * i * i);
+      if (f > 12000) break;
+      // 泛音强度 + 击弦点（约 1/8 弦长）造成的梳状凹陷
+      const strike = Math.abs(Math.sin(Math.PI * i * 0.125));
+      let amp = Math.pow(i, -preset.gamma) * (0.55 + 0.45 * strike);
+      if (f > 7000) amp *= Math.max(0.2, 1 - (f - 7000) / 10000);   // 极高频收敛
+      parts.push({ f, amp, i });
+      sumSq += amp * amp;
+    }
+    if (!parts.length) return;
+
+    // 轻微力度随机，避免每个音一模一样
+    const vel = 0.78 + Math.random() * 0.22;
+    const ampScale = (0.13 * vel) / Math.sqrt(sumSq);
+
+    // 余音长度：低音长、高音短
+    const t60 = Math.min(12, Math.max(2.4, 8.5 * Math.pow(261.63 / f0, 0.52))) * preset.t60;
+
+    // 单音信号链：泛音 → 低通 → 包络 → 声像 → 钢琴总线
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = Math.min(16000, (f0 * 9 + 8000) * (preset.air || 1));
+    lp.Q.value = 0.4;
+
+    const noteGain = ctx.createGain();
+    noteGain.gain.setValueAtTime(0.0001, t);
+    noteGain.gain.exponentialRampToValueAtTime(vel, t + 0.004);
+
+    let out = noteGain;
+    if (ctx.createStereoPanner) {
+      const pan = ctx.createStereoPanner();
+      // 低音偏左、高音偏右，模拟面前的一架钢琴
+      pan.pan.value = Math.max(-0.45, Math.min(0.45, (midi - 60) / 44));
+      noteGain.connect(pan);
+      out = pan;
+    }
+    out.connect(bus);
+
+    // 琴槌击弦噪声：短促的“嗒”，是钢琴质感的关键
+    const noise = ctx.createBufferSource();
+    noise.buffer = getNoiseBuffer(ctx);
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = Math.min(8500, preset.hammerFreq + f0 * 1.4);
+    bp.Q.value = 1.2;
+    const ng = ctx.createGain();
+    const nLevel = 0.11 * vel * preset.hammer;
+    ng.gain.setValueAtTime(0.0001, t);
+    ng.gain.exponentialRampToValueAtTime(nLevel, t + 0.0015);
+    ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.055);
+    noise.connect(bp); bp.connect(ng); ng.connect(noteGain);
+    noise.start(t, Math.random() * 0.15);
+    noise.stop(t + 0.08);
+
+    // 泛音层：低次泛音用双弦微失谐，高次泛音单弦
+    const oscs = [];
+    const attack = 0.0035;
+    const detune = preset.unison * (0.75 + Math.random() * 0.5);
+    parts.forEach(p => {
+      const decay = Math.max(0.45, t60 / Math.pow(p.i, 0.62));
+      const end = t + Math.min(decay, 12);
+      const strings = p.i <= 3 ? 2 : 1;
+      for (let s = 0; s < strings; s++) {
+        const osc = ctx.createOscillator();
+        osc.type = 'sine';
+        const cents = strings === 2 ? (s === 0 ? -0.5 : 0.5) * detune : 0;
+        osc.frequency.value = p.f * Math.pow(2, cents / 1200);
+        const g = ctx.createGain();
+        const a = p.amp * ampScale / strings;
+        // 音头：极快起音 → 短促回落 → 长衰减
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(Math.max(0.0002, a), t + attack);
+        g.gain.exponentialRampToValueAtTime(Math.max(0.0001, a * 0.58), t + attack + 0.14);
+        g.gain.exponentialRampToValueAtTime(0.0001, end);
+        osc.connect(g); g.connect(lp);
+        osc.start(t);
+        osc.stop(end + 0.03);
+        oscs.push(osc);
+      }
     });
-    filter.connect(master);
-    master.connect(ctx.destination);
+    lp.connect(noteGain);
+
+    activeVoices.push({
+      gain: noteGain,
+      oscs,
+      end: t + Math.min(t60, 12) + 0.1,
+      dead: false,
+    });
   }
 
   // 构建一个音符单元格：八度点精确叠在数字正上方/正下方（仅简谱模式）
